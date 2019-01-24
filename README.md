@@ -1,9 +1,5 @@
 
 ## About
 
-LabMaster is the next-generation data acqisition software with build in plot generators and analysis tools
+Probecard is built off the original Labmaster software, but using PyQt as a graphics manager.
 
-
-## Build Status
-| Branch | Continuous | Nightly |
-|--------|------------|---------|
