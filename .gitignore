@@ -1,7 +1,7 @@
 dist
 probecard.egg-info
-output/excel
-output/json
+output/excel/*
+output/json/*
 env
 *~
 __pycache__
