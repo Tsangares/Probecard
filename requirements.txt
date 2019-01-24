@@ -10,6 +10,6 @@ PyQt5-sip==4.19.13
 pyserial==3.4
 python-dateutil==2.7.5
 PyVISA==1.9.1
-PyYAML==3.13
+PyYAML==4.2b4
 six==1.11.0
 XlsxWriter==1.1.2
