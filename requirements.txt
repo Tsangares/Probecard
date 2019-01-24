@@ -1,0 +1,15 @@
+cycler==0.10.0
+future==0.17.1
+iso8601==0.1.12
+kiwisolver==1.0.1
+matplotlib==3.0.2
+numpy==1.15.4
+pyparsing==2.3.0
+PyQt5==5.11.3
+PyQt5-sip==4.19.13
+pyserial==3.4
+python-dateutil==2.7.5
+PyVISA==1.9.1
+PyYAML==3.13
+six==1.11.0
+XlsxWriter==1.1.2
