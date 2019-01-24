@@ -22,6 +22,7 @@ from multiprocessing import Process
 import matplotlib.pyplot as plt
 
 import statistics as stat
+import os
 
 from .devices.PowerSupply import *
 from .devices.Agilent import Agilent4155C
@@ -33,6 +34,13 @@ DEBUG=True
 KEITHLEY=False
 ARDUINO=False
 
+excel_folder = os.path.expanduser("~/Desktop/probecard_output/excel/")
+json_folder = os.path.expanduser("~/Desktop/probecard_output/json/")
+if not os.path.exists(excel_folder):
+    os.makedirs(excel_folder)
+if not os.path.exists(json_folder):
+    os.makedirs(json_folder)
+    
 def getChan(chan):
     map={
         25:'E' , 24:'2' , 23:'BB', 22:'AA', 21:'W' ,
@@ -207,7 +215,7 @@ class DaqProtocol(QThread):
     
     def saveDataToFile(self, data):
         filename=self.options['filename']
-        with open('../output/json/%s.json'%filename ,'w+') as f:
+        with open('%s/%s.json'%(json_folder,filename) ,'w+') as f:
             f.write(json.dumps(data))
 
     #This is a recursive loop that gathers data & calls itself at the next voltage.
@@ -321,7 +329,7 @@ class MultiChannelDaq(DetailWindow):
         
     def finalizeData(self,data):
         files=[]
-        filename=writeExcel(data,self.options['filename'])
+        filename=writeExcel(data,self.options['filename'],excel_folder=excel_folder)
         print("Wrote excel.")
         imgdata = BytesIO()
         self.figure.savefig(imgdata, format='png')

@@ -10,15 +10,16 @@ matplotlib.use("TkAgg")
 
 OUTPUT_FOLDER="../output/excel/"
 #Simply takes the data & writes it to an excel file.
-def writeExcel(data,filename,time=True):
+def writeExcel(data,filename,time=True,excel_folder=None):
+    if excel_folder is None: excel_folder=OUTPUT_FOLDER
 #    if "Windows" not in platform.platform():
 #        filename = tkFileDialog.asksaveasfilename(initialdir="~", title="Save data", filetypes=(("Microsoft Excel file", "*.xlsx"), ("all files", "*.*")))
-    if not os.path.exists(OUTPUT_FOLDER):
-        os.makedirs(OUTPUT_FOLDER)
+    if not os.path.exists(excel_folder):
+        os.makedirs(excel_folder)
     timestamp=datetime.today().strftime("_%Y_%b%d_%I.%M%p")
     if time:
         filename = filename+timestamp
-    file_url="%s%s.xlsx"%(OUTPUT_FOLDER,filename)
+    file_url="%s%s.xlsx"%(excel_folder,filename)
     workbook=xlsxwriter.Workbook(file_url)
     worksheet=workbook.add_worksheet()
     #Get parameters
