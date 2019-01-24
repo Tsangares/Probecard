@@ -1,5 +1,6 @@
 import time, visa
-from devices.Instrument import Instrument
+from .Instrument import Instrument
+import statistics as stats
 #_rm=visa.ResourceManager()
 class Agilent4156(object):
 
@@ -240,6 +241,12 @@ class Agilent4155C(Instrument):
         self.loc=page
         return self.write(":PAGE:%s"%page)
 
+    def setStandby(self,standby=False):
+        if standby:
+            return self.write(":PAGE:SCON:STAN ON")
+        else:
+            return self.write(":PAGE:SCON:STAN OFF")
+
     # Goto measureing page
     def selectMeasure(self):
         return self.selectPage("MEAS:"%self.mode)
@@ -348,7 +355,25 @@ class Agilent4155C(Instrument):
             self.outputs.append(outputName)
         self.write(":PAGE:GLIS:LIST")
 
+    # Set a channel to a constant current
+    # We want it at zero to measure voltage
+    def setCommon(self, channel):
+        if int(channel)<0 or int(channel)>5:
+            raise Exception("Channel is outside bounds. [1-4]; Given %s"%channel)
 
+        #Configuring the channel
+        self.setPrefix(":PAGE:CHAN:SMU%s"%channel) #Select SMU channel
+        self.prefixWrite("MODE COMMON") #Set to source voltage
+        self.prefixWrite("FUNC CONS") #Set to constant
+        self.prefixWrite("STAN OFF") #Disable standby
+        
+        #Add to variable lists
+        outputName="I%s"%channel
+        if outputName not in self.outputs:
+            self.outputs.append(outputName)
+        self.write(":PAGE:GLIS:LIST")
+
+        
     # Sets output data to ascii instead of binary
     def setOutputReadable(self):
         self.write(":FORM:BORD NORM; DATA ASC;")
@@ -356,10 +381,19 @@ class Agilent4155C(Instrument):
     def getResults(self):
         results={}
         if len(self.outputs) == 1:
-            return float(self.query(":DATA? '%s'"%self.outputs[0]))
-        #This is a wierd statement. The variables have to be in the self.outputs list to be read.
+            response=self.query(":DATA? '%s'"%self.outputs[0])
+            try:
+                return float(response)
+            except ValueError:
+                print("FAILED to get measuremnt.")
+                raise Exception(response)
         for output in self.outputs:
-            results[output]=[float(val) for val in self.query(":DATA? '%s'"%output).split(',')]
+            response=self.query(":DATA? '%s'"%output).split(',')
+            try:
+                results[output]=[float(val) for val in response]
+            except ValueError:
+                print("FAILED to get measuremnt.")
+                raise Exception(response)
         return results
 
     def prepareMeasurement(self):
@@ -386,4 +420,9 @@ class Agilent4155C(Instrument):
 
     def getVoltage(self, samples=None, duration=None):
         return self.read(samples,duration)
+
+    #Record is a new addition because processing the data in the DAQ is tedious
+    #This will make assumptions but the data out is simple and neat  
+    def record(self, samples=1, duration=None):
+        self.measurements.append(self.read(samples,duration))
 

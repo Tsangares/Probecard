@@ -23,12 +23,12 @@ import matplotlib.pyplot as plt
 
 import statistics as stat
 
-from devices.PowerSupply import *
-from devices.Agilent import Agilent4155C
-from devices.Arduino import Max
-from interface.DetailWindow import DetailWindow
-from utilities.Excel import writeExcel
-from utilities.emailbot import send_mail
+from .devices.PowerSupply import *
+from .devices.Agilent import Agilent4155C
+from .devices.Arduino import Max
+from .interface.DetailWindow import DetailWindow
+from .utilities.Excel import writeExcel
+from .utilities.emailbot import send_mail
 DEBUG=True
 KEITHLEY=False
 ARDUINO=False
@@ -113,6 +113,7 @@ class DaqProtocol(QThread):
 
     def configureAglient(self, kwargs):
         self.agilent.setSamplingMode()
+        self.agilent.sestStandby(True)
         self.agilent.setLong()
         #self.agilent.setShort()
         #if int(kwargs['nChan']) < 0 or int(kwargs['nChan']) > 4:

@@ -1,11 +1,32 @@
 import visa
-
+import statistics as stats
 #This is used to connect to devices using gpib
 #The Instrument class should be inherited into a device specific class (see Agilent4155C)
 class Instrument:
     def __init__(self):
         self.inst=None
+        self.measurements=[]
+        self.history=[]
 
+    def clearRecord(self):
+        self.measurements=[]
+        self.history=[]
+
+    #Converts a list of [{'chan1': 22, 'chan2': 43},{'chan1': 232, 'chan2': 433}]
+    #To {'chan1': [22,232], 'chan2': [43,433]}
+    def getRecord(self):
+        out={}
+        for measurement in self.measurements:
+            for chan,val in measurement.items():
+                if out.get(chan,None) is None: out[chan]=[]
+                if type(val) == list:
+                    out[chan].append(stats.mean(val))
+                else:
+                    out[chan].append(val)   
+        self.history.append(out)
+        self.clearRecord()
+        return out
+    
     def getName(self,inst=None):
         if inst is None:
             if self.inst is not None:

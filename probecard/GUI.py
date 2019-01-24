@@ -19,11 +19,11 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib import pyplot as plt
 
-from MultiChannelDaq import MultiChannelDaq as Daq
-from interface.Core import MenuWindow
-from interface.DetailWindow import DetailWindow
-from devices.Agilent import AgilentE4980a, Agilent4156
-from devices.PowerSupply import PowerSupplyFactory
+from .MultiChannelDaq import MultiChannelDaq as Daq
+from .interface.Core import MenuWindow
+from .interface.DetailWindow import DetailWindow
+from .devices.Agilent import AgilentE4980a, Agilent4156
+from .devices.PowerSupply import PowerSupplyFactory
 
 
 class MainMenu(MenuWindow):
@@ -141,6 +141,9 @@ class Gui(QApplication):
         self.window = MainMenu()
         self.window.onExperiment.connect(self.startExperiment)
         self.aboutToQuit.connect(self.window.exit)
-        
-gui=Gui()
 
+def init():
+    gui=Gui()
+    
+if __name__ == "__main__":
+    init()

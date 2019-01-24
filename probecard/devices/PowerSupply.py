@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import visa,time
-from devices.Instrument import Instrument
+from .Instrument import Instrument
 from numpy import linspace
 
 class PowerSupplyFactory(Instrument):
@@ -10,7 +10,9 @@ class PowerSupplyFactory(Instrument):
     Call the static method PowerSupply.factory("insert_my_type")
     to get a power supply object instance
     """
-
+    def __init__(self):
+        return super(PowerSupplyFactory,self).__init__()
+    
     def factory(power_supply_type):
         """
         Factory method for instantiating power supply objects
@@ -37,7 +39,7 @@ class PowerSupplyFactory(Instrument):
 class Keithley2657a(PowerSupplyFactory):
     # default address was 24, I changed it to 1 m.w. 11/9/18
     def __init__(self, gpib_address=1):
-        #super(Keithley2657a,self).__init__()
+        super(Keithley2657a,self).__init__()
         """
         Initializer for Keithley power supply
         Checks to make sure that the power supply is not on
@@ -88,7 +90,10 @@ class Keithley2657a(PowerSupplyFactory):
 
         self.supply.write("smua.source.levelv = " + str(level))
         self.enable_output(True)
-
+        
+    def set_compliance(self, limit=0.1):
+        self.supply.write("smua.source.limiti = %s"%limit)
+        
     def __configure_compliance(self, limit=0.1):
         """
         Sets compliance level of device
@@ -97,7 +102,24 @@ class Keithley2657a(PowerSupplyFactory):
         """
 
         self.supply.write("smua.source.limiti = " + str(limit))
+        
+    def set_current_range(self,amount):
+        if type(amount) == str:
+            if amount == 'u':
+                amount = 0
+            elif amount == 'm':
+                amount = 10**3
+            elif amount == '':
+                amount = 10**6
+            elif amount == 'k':
+                amount = 10**9
+        self.inst.write("smua.measure.rangei = %s"%amount)
 
+    #this whole class is assuming the keithley is a power supply only
+    #neglecting the option of it being a current supply
+    def set_voltage_range(self,amount):
+        self.inst.write("smua.source.rangev = %s"%amount)
+        
     def configure_measurement(self, _func=1, output_level=0, compliance=0.1):
         """
         Sets up the measurement parameters in one fell swoop
@@ -129,6 +151,7 @@ class Keithley2657a(PowerSupplyFactory):
         Query the device for a current reading
         :return: float representation of the current measured
         """
+        print(self.supply.query("printnumber(smua.measure.i())"))
         return float(self.supply.query("printnumber(smua.measure.i())").split("\n")[0])
     
     def get_voltage(self):
@@ -139,6 +162,17 @@ class Keithley2657a(PowerSupplyFactory):
 
         return float(self.supply.query("printnumber(smua.measure.v())").split("\n")[0])
 
+    #Record is for easy data taking.
+    def record(self):
+        self.measurements.append({
+                'current': self.get_current(),
+                'voltage': self.get_voltage(),
+            })
+
+
+        
+    def stop(self, speed=5):
+        return self.powerDownPSU(speed)
     #`speed` is Volt per seccond
     def powerDownPSU(self, speed=5):
         voltage=self.get_voltage()

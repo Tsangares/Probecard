@@ -57,7 +57,7 @@ class Saveable(QMainWindow,ValueHandler):
     onLoad = pyqtSignal(str)
     onSave = pyqtSignal(str)
 
-    def saveSettings(self, filename=".settings.tmp.json"):
+    def saveSettings(self, filename="settings.json"):
         saveData=json.dumps(self.getData())
         with open(filename, "w") as f:
             f.write(saveData)
@@ -68,9 +68,9 @@ class Saveable(QMainWindow,ValueHandler):
         pass
 
     def exit(self):
-        self.saveSettings(filename=".settings.tmp.json")
+        self.saveSettings(filename="settings.json")
     
-    def loadSettings(self,filename=".settings.tmp.json"):
+    def loadSettings(self,filename="settings.json"):
         data=None
         try:
             with open(filename) as f:
@@ -88,7 +88,7 @@ class Saveable(QMainWindow,ValueHandler):
         except FileNotFoundError:
             print("No settings file.")
 
-    def getSettings(self,filename=".settings.tmp.json"):
+    def getSettings(self,filename="settings.json"):
         data=None
         try:
             with open(filename) as f:
@@ -102,7 +102,7 @@ class Saveable(QMainWindow,ValueHandler):
             print("No settings file.")
 
     def loadAutosave(self):
-        self.loadSettings(filename=".settings.tmp.json")
+        self.loadSettings(filename="settings.json")
 
 """
 The purpose of Stateful is subtle.

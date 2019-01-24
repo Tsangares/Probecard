@@ -1,3 +1,5 @@
+dist
+probecard.egg-info
 output/excel
 output/json
 env
