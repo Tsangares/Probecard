@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 matplotlib.use("TkAgg")
 
-OUTPUT_FOLDER="./excel/"
+OUTPUT_FOLDER="../output/excel/"
 #Simply takes the data & writes it to an excel file.
 def writeExcel(data,filename,time=True):
 #    if "Windows" not in platform.platform():

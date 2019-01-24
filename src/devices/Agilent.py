@@ -1,5 +1,5 @@
 import time, visa
-from Instrument import Instrument
+from devices.Instrument import Instrument
 #_rm=visa.ResourceManager()
 class Agilent4156(object):
 

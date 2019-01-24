@@ -11,11 +11,8 @@ but currents from the agilent will be read.
 """
 
 from queue import Queue
-from PowerSupply import *
-from Agilent import Agilent4155C
 from numpy import linspace
 from random import random
-from DetailWindow import DetailWindow
 from io import BytesIO
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QLabel,QPushButton
@@ -23,10 +20,15 @@ import json, time
 from threading import Thread
 from multiprocessing import Process
 import matplotlib.pyplot as plt
-from Arduino import Max
-from Excel import writeExcel
+
 import statistics as stat
-from emailbot import send_mail
+
+from devices.PowerSupply import *
+from devices.Agilent import Agilent4155C
+from devices.Arduino import Max
+from interface.DetailWindow import DetailWindow
+from utilities.Excel import writeExcel
+from utilities.emailbot import send_mail
 DEBUG=True
 KEITHLEY=False
 ARDUINO=False
@@ -204,7 +206,7 @@ class DaqProtocol(QThread):
     
     def saveDataToFile(self, data):
         filename=self.options['filename']
-        with open('./json/%s.json'%filename ,'w+') as f:
+        with open('../output/json/%s.json'%filename ,'w+') as f:
             f.write(json.dumps(data))
 
     #This is a recursive loop that gathers data & calls itself at the next voltage.

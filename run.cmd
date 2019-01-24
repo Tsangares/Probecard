@@ -1,1 +1,1 @@
-python GUI.py
+python src/GUI.py

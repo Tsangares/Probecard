@@ -8,23 +8,22 @@ import time,threading
 import platform as platform
 import json
 import os.path
-
-from Agilent import AgilentE4980a, Agilent4156
-from PowerSupply import PowerSupplyFactory
-
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib import pyplot as plt
+from multiprocessing import Process
+from threading import Thread
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from multiprocessing import Process
-from threading import Thread
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-from Core import MenuWindow
-from DetailWindow import DetailWindow
+from matplotlib import pyplot as plt
+
 from MultiChannelDaq import MultiChannelDaq as Daq
+from interface.Core import MenuWindow
+from interface.DetailWindow import DetailWindow
+from devices.Agilent import AgilentE4980a, Agilent4156
+from devices.PowerSupply import PowerSupplyFactory
 
 
 class MainMenu(MenuWindow):
@@ -57,6 +56,7 @@ class MainMenu(MenuWindow):
 
     def recoverRegions(self):
         settings=self.getSettings()
+        if settings is None: return
         regions = [ key for key,value in settings.items() if 'region' in key  and 'start' in key ]
         for region in range(len(regions)):
             self.addRegion()

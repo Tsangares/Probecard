@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import visa,time
-from Instrument import Instrument
+from devices.Instrument import Instrument
 from numpy import linspace
 
 class PowerSupplyFactory(Instrument):

@@ -1,3 +1,5 @@
 output/excel
 output/json
 env
+*~
+__pycache__
