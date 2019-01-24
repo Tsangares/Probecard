@@ -39,8 +39,10 @@ class MainMenu(MenuWindow):
         menu=self.getWidget(self.getCurrentSetup(), action=self.initDuo)
         self.setCentralWidget(menu)
         self.menu=menu
-        self.menu.setSizePolicy(QSizePolicy.Minimum,QSizePolicy.Minimum)
-        #This will change the page when the toolbar is perturbed.
+
+        btn=self.getToggle("debug")
+        self.menu.layout().addRow(btn,QLabel("Debug Mode"))
+
         self.addRegionBtn=QPushButton('Add Region')
         self.delRegionBtn=QPushButton('Delete Region')
         menu.layout().addRow(self.delRegionBtn,self.addRegionBtn)

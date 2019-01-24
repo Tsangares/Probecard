@@ -30,9 +30,6 @@ from .devices.Arduino import Max
 from .interface.DetailWindow import DetailWindow
 from .utilities.Excel import writeExcel
 from .utilities.emailbot import send_mail
-DEBUG=True
-KEITHLEY=False
-ARDUINO=False
 
 excel_folder = os.path.expanduser("~/Desktop/probecard_output/excel/")
 json_folder = os.path.expanduser("~/Desktop/probecard_output/json/")
@@ -72,7 +69,7 @@ class DaqProtocol(QThread):
     onClearPlot = pyqtSignal(str)
     onCalibrationDone = pyqtSignal(str)
     onEmergencyStop = pyqtSignal(str)
-    
+
     def __init__(self,options,widget=None):
         super(DaqProtocol,self).__init__(widget)
         self.options=options
@@ -80,6 +77,10 @@ class DaqProtocol(QThread):
         self.calibrated=False
         self.emergencyStop=False
         self.onEmergencyStop.connect(self.initEmergencyStop)
+        self.DEBUG=True
+        self.KEITHLEY=False
+        self.ARDUINO=False
+
                                      
     def initEmergencyStop(self,msg=None):
         print("Emergency Stop Initialized")
@@ -97,13 +98,23 @@ class DaqProtocol(QThread):
         #Connect to instruments
         port = 0
         self.arduino=None
-        if not DEBUG:
-            if KEITHLEY:
+        if self.options['debug'] == 0:
+            #DEBUG IS OFF (DANGEROUS)
+            self.DEBUG=False
+            self.KEITHLEY=True
+            self.ARDUINO=True
+        elif self.options['debug'] == 2:
+            self.DEBUG=True
+            self.KEITHLEY=False
+            self.ARDUINO=False
+
+        if not self.DEBUG:
+            if self.KEITHLEY:
                 self.keithley = Keithley2657a()
                 self.configureKeithley(options)
             self.agilent = Agilent4155C(reset=True)
             self.configureAglient(options)
-            if ARDUINO:
+            if self.ARDUINO:
                 self.arduino = Max("COM%s"%options['com'])
         self.log("Starting data collection")
         
@@ -138,13 +149,13 @@ class DaqProtocol(QThread):
         self.keithley.configure_measurement(1, 0, float(kwargs['kcomp']))
 
     def getMeasurement(self,samples,duration,channels=None,index=None):
-        if DEBUG:
+        if self.DEBUG:
             time.sleep(.2)
             return {"chan%d"%(i+4*index): 100*random()*i**(i*i) for i in range(1,5)}
         agilentData=self.agilent.read(samples,duration)
         agilent={ getChan(channels[int(key[-1])-1]): value[-1] for key,value in agilentData.items() }
         
-        if KEITHLEY and index is not None:
+        if self.KEITHLEY and index is not None:
             keithley=self.keithley.get_current() #float
             agilent['keithley%d'%index]=keithley
         return agilent
@@ -178,7 +189,7 @@ class DaqProtocol(QThread):
             measurements+=measured
         measurements=sorted(measurements,key=lambda p: p['Voltage'],reverse=True)
         output=self.repeatedListToDict(measurements)
-        if not DEBUG and KEITHLEY: self.keithley.powerDownPSU()
+        if not self.DEBUG and self.KEITHLEY: self.keithley.powerDownPSU()
         #Possibly calculate leakage later?
         if self.emergencyStop: print("Emergency Stop Successful.")
         self.onFinish.emit(output)
@@ -230,7 +241,7 @@ class DaqProtocol(QThread):
         if limit is not None: self.log("Step is %.02e; while limit is %.02e; currently at %.02e"%(step,limit,volt))
 
         #Only turn on the keithley if we are absolutley certain we should:
-        if not DEBUG and KEITHLEY and limit is not None:
+        if not self.DEBUG and self.KEITHLEY and limit is not None:
             self.log("Setting keithley to %.02e"%volt)
             self.keithley.set_output(volt)
 
@@ -243,10 +254,10 @@ class DaqProtocol(QThread):
         #for mux in range(0,7):
         for mux in range(0,7): #Mux stands to the range of connected inputs from the multiplexers
             if self.emergencyStop: return []
-            if ARDUINO and not DEBUG: self.arduino.getGroup(mux)
+            if self.ARDUINO and not self.DEBUG: self.arduino.getGroup(mux)
             channels=Max.reverse_map[mux]
             self.log("Set mux to %d, reading channels: %s"%(mux,channels))
-            if not DEBUG: time.sleep(1) #Delay for multiplexers to settle
+            if not self.DEBUG: time.sleep(1) #Delay for multiplexers to settle
             cache={} #Cache is the measurement for a specific mux
             for i in range(repeat): #This supports repeated measurements for averaging measurements
                 if i < repeat and repeat is not 1: self.log("On sample %d out of %d. %2d%%"%(i,repeat,100.0*i/repeat))

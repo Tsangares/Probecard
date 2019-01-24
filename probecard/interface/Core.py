@@ -39,12 +39,18 @@ class ValueHandler:
     def getLineEdit(self,label):
         self.database[label] = QLineEdit()
         return self.database[label]
+    def getToggle(self,label):
+        self.database[label] = QCheckBox()
+        return self.database[label]
     def getValue(self, key):
         return self.database[key]
     def getData(self):
         output={}
         for key,data in self.database.items():
-            output[key]=data.text()
+            if(type(data) == QCheckBox):
+                output[key]=data.checkState()
+            else:
+                output[key]=data.text()
         return output
     def delete(self, key):
         return self.database.pop(key,None)
@@ -77,9 +83,14 @@ class Saveable(QMainWindow,ValueHandler):
                 data=json.loads(f.read())
                 f.close()
             if data != None:
+                print(self.database)
                 for key,field in data.items():
                     try:
-                        self.getValue(key).setText(data[key])
+                        obj=self.getValue(key)
+                        if type(obj) == QCheckBox:
+                            obj.setCheckState(data[key])
+                        else:
+                            obj.setText(data[key])
                     except KeyError:
                         print("Nothing saved for %s"%key)
                 self.onLoad.emit("loaded")
