@@ -37,3 +37,8 @@ This uses python3 and will break when using python2.
    - `GUI.py` contains the basic contents of the main menu.
    - `MultiChannelDaw.py`, the main daq loop, configuring the power supply and the agilent.
  
+## How do I update the pip package?
+
+Please follow my instructions here: https://gist.github.com/Tsangares/43dec5fe55447848c459224ee3f2c9f7
+
+Or read the pypi manual https://packaging.python.org/
