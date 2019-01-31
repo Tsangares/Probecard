@@ -24,9 +24,9 @@ import matplotlib.pyplot as plt
 import statistics as stat
 import os
 
-from .devices.PowerSupply import *
-from .devices.Agilent import Agilent4155C
-from .devices.Arduino import Max
+from  contraption.PowerSupply import *
+from  contraption.Agilent import Agilent4155C
+from  contraption.Arduino import Max
 from .interface.DetailWindow import DetailWindow
 from .utilities.Excel import writeExcel
 from .utilities.emailbot import send_mail

@@ -27,6 +27,7 @@ setuptools.setup(
         "PyYAML==4.2b4",
         "six==1.11.0",
         "XlsxWriter==1.1.2",
+	"contraption>=0.0.2",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

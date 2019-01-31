@@ -1,6 +1,6 @@
 import unittest
-from devices.Agilent import *
-from devices.PowerSupply import *
+from contraption.Agilent import *
+from contraption.PowerSupply import *
 from numpy import linspace,polyfit
 from time import sleep
 import matplotlib.pyplot as plt

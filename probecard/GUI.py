@@ -22,8 +22,6 @@ from matplotlib import pyplot as plt
 from .MultiChannelDaq import MultiChannelDaq as Daq
 from .interface.Core import MenuWindow
 from .interface.DetailWindow import DetailWindow
-from .devices.Agilent import AgilentE4980a, Agilent4156
-from .devices.PowerSupply import PowerSupplyFactory
 
 
 class MainMenu(MenuWindow):
