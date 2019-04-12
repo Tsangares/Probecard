@@ -19,10 +19,15 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib import pyplot as plt
 
-from .MultiChannelDaq import MultiChannelDaq as Daq
-from .interface.Core import MenuWindow
-from .interface.DetailWindow import DetailWindow
-
+try: 
+    from .MultiChannelDaq import MultiChannelDaq as Daq
+    from .interface.Core import MenuWindow
+    from .interface.DetailWindow import DetailWindow
+except:
+    from MultiChannelDaq import MultiChannelDaq as Daq
+    from interface.Core import MenuWindow
+    from interface.DetailWindow import DetailWindow
+    
 
 class MainMenu(MenuWindow):
     onExperiment = pyqtSignal(str)

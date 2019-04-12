@@ -27,9 +27,14 @@ import os
 from  contraption.PowerSupply import *
 from  contraption.Agilent import Agilent4155C
 from  contraption.Arduino import Max
-from .interface.DetailWindow import DetailWindow
-from .utilities.Excel import writeExcel
-from .utilities.emailbot import send_mail
+try:
+    from .interface.DetailWindow import DetailWindow
+    from .utilities.Excel import writeExcel
+    from .utilities.emailbot import send_mail
+except:
+    from interface.DetailWindow import DetailWindow
+    from utilities.Excel import writeExcel
+    from utilities.emailbot import send_mail
 
 excel_folder = os.path.expanduser("~/Desktop/probecard_output/excel/")
 json_folder = os.path.expanduser("~/Desktop/probecard_output/json/")
