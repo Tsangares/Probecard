@@ -1,15 +1,15 @@
 import setuptools
 
 setuptools.setup(
-    name="probecard",
-    version="0.0.6",
+    name="probecardv1.4",
+    version="0.0.1",
     author="William Wyatt",
     author_email="wwyatt@ucsc.edu",
     description="GUI for probecard measurements.",
     long_description="GUI for probecard measurements.",
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
-    url="https://github.com/Tsangares/Probecard",
+    url="https://github.com/Tsangares/Probecard/tree/probecardv1.4",
     scripts=['probecard/bin/probecard'],
     install_requires=[
         "cycler==0.10.0",
