@@ -7,7 +7,7 @@ from threading import Thread
 from multiprocessing import Process
 from queue import Queue
 from random import random
-
+from abc import ABCMeta,abstractmethod
 """
 This is supposed to be an abstract class,
 that should be implemented by the child for the intended experiemt.
@@ -21,12 +21,12 @@ It also has a multi-subplot matplotlib canvas, and a custom menu section.
 """
 
 class DetailWindow(QMainWindow):
+    __metaclass__=ABCMeta
     def __init__(self):
         super(DetailWindow,self).__init__()
-        self.cache={} #This data is what is plotted.
-        self.figs=[] #These are the figures to plot on.
+        self.cache={}
+        self.figs=[]
         self.output=None
-        
         canvas,figure = self.getCanvas()
         self.figure=figure #Pyplot
         self.canvas=canvas #QWidget
@@ -70,61 +70,14 @@ class DetailWindow(QMainWindow):
 
     #All on one plot.
         #Assuming a point is of the form (float,key:float)
+    @abstractmethod
     def addPoint(self,point):
-        self.fig.clear()
-        volt=point[0]
-        meas=point[1]
-        try:
-            self.cache['volts']
-        except KeyError:
-            self.cache['volts']=set()
-        self.cache['volts'].add(volt)
-
-        ## Add recent measurement to cach
-        for key,item in meas.items():
-            if 'pass' in key: continue
-            try:
-                self.cache[key].append(item)
-            except KeyError:
-                self.cache[key]=[]
-                self.cache[key].append(item)
-
-        ## Then Plot
-        for key,item in self.cache.items():
-            if key == 'volts' : continue
-            voltages=sorted(list(self.cache['volts'])[:len(self.cache[key])])[::-1]
-            try:
-                self.fig.plot(voltages,self.cache[key],label=key)
-            except ValueError:
-                print("could not plot.len(volt)!=len(y)",voltages,self.cache[key])
-        self.fig.legend() #enables the legend
-        self.fig.invert_xaxis()
-        self.fig.set_xlabel("Voltage (V)")
-        self.fig.set_ylabel("Current (A)")
-        self.fig.set_title("Multichannel Current vs Voltage")
-        self.canvas.draw()
+        """Use point to plot into self.fig"""
 
     def clearPlot(self,msg=None):
         self.cache={}
-        
-        
-    ''' #This is for every data point on its own plot.
-    def addPoint(self,point):
-        for tmp,fig in zip(point.items(),self.figs):
-            key,item=tmp
-            try:
-                self.cache[key]
-            except KeyError:
-                self.cache[key]=[]
-            self.cache[key].append(item)
-            fig.clear()
-            x=range(len(self.cache[key]))
-            fig.plot(x,self.cache[key])
-        self.canvas.draw()
-        '''
-        
+
     def testJumple(self):
         for fig in self.figs:
             fig.plot([x for x in range(100)],[random() for y in range(100)])
-
-
+        

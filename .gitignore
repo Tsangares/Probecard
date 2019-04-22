@@ -3,5 +3,6 @@ probecard.egg-info
 output/excel/*
 output/json/*
 env
+settings.json
 *~
 __pycache__

@@ -4,9 +4,8 @@ Contains a MainMenu, with all of the configuaration variables defined.
 The Gui class simple instantiates the MainMenu and handles window switching.
  - WCW 181127
 """
-import time,threading
+import time,threading,json
 import platform as platform
-import json
 import os.path
 from multiprocessing import Process
 from threading import Thread
@@ -14,33 +13,36 @@ from threading import Thread
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 try:
     import matplotlib.pyplot as plt
 except:
+    #Mac support
     import matplotlib
     matplotlib.use('TkAgg')
     import matplotlib.pyplot as plt
 
-try: 
-    from .MultiChannelDaq import MultiChannelDaq as Daq
-    from .interface.Core import MenuWindow
-    from .interface.DetailWindow import DetailWindow
-except:
-    from MultiChannelDaq import MultiChannelDaq as Daq
-    from interface.Core import MenuWindow
-    from interface.DetailWindow import DetailWindow
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+
+if __package__ in [None,""]:
+    #Running from git clone
+    from daq import MultiPixelDaq as Daq
+    from menu import MenuWindow
+else:
+    #Running from pip install
+    from .daq import MultiPixelDaq as Daq
+    from .menu import MenuWindow
+
+    
     
 
 class MainMenu(MenuWindow):
     onExperiment = pyqtSignal(str)
     def __init__(self):
         #States need to be configured first to setup the toolbar
-        states=['Read Current', 'Read Voltage']
+        states=['Single Pixel','Many Pixels','Unique Mode']
         super(MainMenu,self).__init__(states)
-
-        #This setups the fields and buttons
 
         #Rename getWidget to generateMenuBaseOnJsonOptions
         menu=self.getWidget(self.getCurrentSetup(), action=self.initDuo)
@@ -60,8 +62,6 @@ class MainMenu(MenuWindow):
         self.loadAutosave()
         self.show()
 
-    def test(self):
-        print("pressed")
 
     def recoverRegions(self):
         settings=self.getSettings()
@@ -153,6 +153,9 @@ class Gui(QApplication):
 
 def init():
     gui=Gui()
-    
+
+def five():
+    return 6
+
 if __name__ == "__main__":
     init()

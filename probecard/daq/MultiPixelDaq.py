@@ -27,14 +27,9 @@ import os
 from  contraption.PowerSupply import *
 from  contraption.Agilent import Agilent4155C
 from  contraption.Arduino import Max
-try:
-    from .interface.DetailWindow import DetailWindow
-    from .utilities.Excel import writeExcel
-    from .utilities.emailbot import send_mail
-except:
-    from interface.DetailWindow import DetailWindow
-    from utilities.Excel import writeExcel
-    from utilities.emailbot import send_mail
+
+from .utilities import writeExcel,attachFile,send_mail
+from .windows import IV_Window
 
 excel_folder = os.path.expanduser("~/Desktop/probecard_output/excel/")
 json_folder = os.path.expanduser("~/Desktop/probecard_output/json/")
@@ -312,10 +307,10 @@ class DaqProtocol(QThread):
 
 
 #Just a window now.
-class MultiChannelDaq(DetailWindow):
+class MultiPixelDaq(IV_Window):
     onFinish = pyqtSignal(str)
     def __init__(self, options):
-        super(MultiChannelDaq,self).__init__()
+        super(MultiPixelDaq,self).__init__()
         #Build number of plots
         #for i in range(1,5):
         #    self.figs.append(self.figure.add_subplot(2,2,i))
