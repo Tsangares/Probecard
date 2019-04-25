@@ -47,6 +47,9 @@ class MainMenu(MenuWindow):
         #Rename getWidget to generateMenuBaseOnJsonOptions
         menu=self.getWidget(self.getCurrentSetup(), action=self.initDuo)
         self.setCentralWidget(menu)
+
+        self.addToolBar(self.toolbar)
+
         self.menu=menu
 
         btn=self.getToggle("debug")
@@ -75,8 +78,16 @@ class MainMenu(MenuWindow):
         key='region_%s'%len(self.regions)
         labels=self.getLabelFromKey(key)
         dbkeys=self.getDbKeyFromKey(key)
+        startBtn=self.getLineEdit(dbkeys['start'])
+        if len(self.regions) >= 1:
+            prevKey='region_%s'%(len(self.regions)-1)
+            prevEndButton=self.database[self.getDbKeyFromKey(prevKey)['end']]
+            startBtn.setReadOnly(True)
+            startBtn.setStyleSheet('background-color:#eee;color:gray')
+            prevEndButton.editingFinished.connect(lambda: startBtn.setText(prevEndButton.text()))
         self.regions.append(key)
-        self.menu.layout().addRow(QLabel(labels['start']), self.getLineEdit(dbkeys['start']))
+        
+        self.menu.layout().addRow(QLabel(labels['start']), startBtn)
         self.menu.layout().addRow(QLabel(labels['end']), self.getLineEdit(dbkeys['end']))
         self.menu.layout().addRow(QLabel(labels['steps']), self.getLineEdit(dbkeys['steps']))
 
@@ -95,7 +106,7 @@ class MainMenu(MenuWindow):
             
     
     def delRegion(self,msg=None):
-        if len(self.regions) == 0: return
+        if len(self.regions) == 1: return
         key=self.regions[-1]
         self.regions.remove(key)
         labels=self.getLabelFromKey(key)

@@ -104,9 +104,7 @@ class MenuWindow(Stateful):
 
     def removeWidget(self,parent, objectType, text):
         for child in parent.children():
-            if(type(child) == QLineEdit):
-                print(vars(QLineEdit))
-            if(type(child) == objectType and child.text() == text):
+           if(type(child) == objectType and child.text() == text):
                 parent.layout().removeRow(child)
                 
                 

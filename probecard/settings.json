@@ -1,1 +1,1 @@
-{"state": "", "email": "wwyatt@ucsc.edu", "filename": "test", "kcomp": "1", "holdTime": "1", "measDelay": "1", "measTime": "1", "com": "1", "repeat": "1", "resistance": "1", "acomp": "1", "debug": 2, "region_0_start": "0", "region_0_end": "10", "region_0_steps": "2"}
+{"state": "", "email": "", "filename": "", "kcomp": "", "holdTime": "", "measDelay": "", "measTime": "", "com": "", "repeat": "", "resistance": "", "acomp": "", "debug": 0, "region_0_start": "2", "region_0_end": "3", "region_0_steps": "4", "region_1_start": "3", "region_1_end": "", "region_1_steps": ""}
