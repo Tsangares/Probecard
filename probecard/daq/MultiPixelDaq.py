@@ -119,7 +119,7 @@ class DaqProtocol(QThread):
         self.log("Starting data collection")
         
         self.log("STARTING CALIBRATION")
-        self.calibration=self.aquireLoop(0,None,None,self.options['measTime'],int(self.options['repeat']))[0]
+        self.calibration=self.aquireLoop(0,None,None,repeat=3)[0]
         self.onClearPlot.emit("clear")
         self.log("ENDING CALIBRATION")
         
@@ -185,7 +185,7 @@ class DaqProtocol(QThread):
             step=(endVolt-startVolt)/float(steps)
             #voltages=list(linspace(startVolt,endVolt,steps+1))
             self.log("Region %d initialized with %d steps between %04d and %04g V."%(i,steps,startVolt,endVolt))
-            measured=self.aquireLoop(startVolt,step,endVolt,kwargs['measTime'],1)
+            measured=self.aquireLoop(startVolt,step,endVolt,1)
             measurements+=measured
         measurements=sorted(measurements,key=lambda p: p['Voltage'],reverse=True)
         output=self.repeatedListToDict(measurements)
@@ -211,6 +211,8 @@ class DaqProtocol(QThread):
         #Currently only supporting getting from GUI options
         #The input variable chan here will corespond to the channel
         #Use lookup table to find this resistance.
+        if self.options['resistance'] == 0:
+            raise(Exception("Resistance must not be zero!"))
         return float(self.options['resistance'])
     
     def checkCompliance(self,meas):
@@ -230,7 +232,7 @@ class DaqProtocol(QThread):
             f.write(json.dumps(data))
 
     #This is a recursive loop that gathers data & calls itself at the next voltage.
-    def aquireLoop(self,volt,step,limit,measTime,repeat=1,delay=.1):
+    def aquireLoop(self,volt,step,limit,repeat=1,delay=.1):
         #Note, if limit is none, then we are calibrating
 
         ### Logistics and Logging ###
@@ -261,13 +263,14 @@ class DaqProtocol(QThread):
             cache={} #Cache is the measurement for a specific mux
             for i in range(repeat): #This supports repeated measurements for averaging measurements
                 if i < repeat and repeat is not 1: self.log("On sample %d out of %d. %2d%%"%(i,repeat,100.0*i/repeat))
-                thisMeasurements=self.getMeasurement(1,measTime,channels,index=mux)
+                thisMeasurements=self.getMeasurement(1,channels,index=mux)
                 for channel,value in thisMeasurements.items():
                     if "keithley" in channel:
                         amps=value
                     else:
                         ## Convert keithley voltage to current ##
                         amps=value/self.getResistance(channel)
+                        
 
                         ## Account for noise ##
                         if self.calibration is not None:
@@ -288,11 +291,11 @@ class DaqProtocol(QThread):
         elif abs(limit-volt)/step > 10 and self.checkCompliance(meas):
             print("Compliance Breached! Taking 8 more measurements.")
             newLimit=volt+step*9
-            return self.aquireLoop(volt+step,step,volt+step*9,measTime,repeat,delay).append(meas)
+            return self.aquireLoop(volt+step,step,volt+step*9,repeat,delay).append(meas)
         else:
             newLimit=limit
             print("Acquisition cycle on %04d V ended. Makeing volt step of %.02f"%(int(volt),step))
-        return self.aquireLoop(volt+step,step,newLimit,measTime,repeat,delay)+[meas]
+        return self.aquireLoop(volt+step,step,newLimit,repeat,delay)+[meas]
 
     #returns the second item in this weird format.
     def skipMeasurements(result, skip):

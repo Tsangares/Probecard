@@ -1,4 +1,5 @@
 from .Stateful import Stateful
+from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 #Menu Window inherits Stateful <- Saveable <- QMainWindow & ValueHandler
 # It is mainly suposed to be a QMainWindow object with functions
@@ -14,7 +15,15 @@ class MenuWindow(Stateful):
         self.toolbar = QToolBar()
         #self.addToolBar(self.toolbar)
         self.buildToolBar()
+        self.stateWidget=QFrame()
+        QFormLayout(self.stateWidget)
+        self.stateLabel=QLabel("Page Specfic Buttons")
+        self.stateLabel.setStyleSheet("color: #aaa;font-family: monospace;")
+        self.stateWidget.layout().addRow(self.stateLabel)
+        self.stateCache={}
+        self.onStateChange.connect(self.purgeState)
 
+        
     #Call refreshToolbar when the state changes.
     def setState(self,state):
         self.refreshToolbar(state)
@@ -84,27 +93,47 @@ class MenuWindow(Stateful):
         
         return widget
 
-    def addStateButton(self, boundState, text, action):
-        layout=self.centralWidget().layout()
-        self.onStateChange.connect(lambda state: self.stateWidgetHandle(state,boundState,text,action))
+    def checkState(self,state):
+        if state not in [e[0] for e in self.stateCache.items()]:
+            self.stateCache[state]=[]
 
-    #In this function I try to delete some buttons, but it is no elegant.
-    def stateWidgetHandle(self, state, boundState, text, action):
-        layout=self.centralWidget().layout()
-        if boundState == state:
-            if text not in [child.text() for child in self.centralWidget().children() if type(child) == QPushButton]:
-                btn=QPushButton()
-                btn.setText(text)
-                btn.clicked.connect(action)
-                layout.addRow(btn)
-        else:
-            for child in self.centralWidget().children():
-                if(type(child) == QPushButton and child.text() ==  text):
-                    layout.removeRow(child)
+    def addStateWidget(self,state,*args):
+        self.checkState(state)
+        for widget in args:
+            self.stateCache[state].insert(0,widget)
 
+    def addStateButton(self, boundState, text, action=None):
+        btn=QPushButton(text)
+        if action is not None: btn.clicked.connect(action)
+        self.addStateWidget(boundState,btn)
+        
+    def purgeState(self,currentState):
+        self.checkState(currentState)
+        #Destruction
+        for child in self.stateWidget.children():
+            if issubclass(type(child),QWidget) and child not in self.stateCache[currentState]+[self.stateLabel]:
+                child.hide()
+        #Creation
+        for widget in self.stateCache[currentState]:
+            if widget not in self.stateWidget.children():
+                if issubclass(type(widget),tuple):
+                    self.stateWidget.layout().addRow(widget[0],widget[1])
+                else:
+                    self.stateWidget.layout().addRow(widget)
+            widget.show()
+                
     def removeWidget(self,parent, objectType, text):
-        for child in parent.children():
-           if(type(child) == objectType and child.text() == text):
-                parent.layout().removeRow(child)
+        def compare(child,layout):
+            if issubclass(type(child),objectType) and child.text() == text:
+                layout.removeRow(child)
+                
+        if issubclass(type(parent),QLayout):
+            for i in range(parent.count()):
+                obj=parent.itemAt(i)
+                if obj is not None: compare(obj.widget(),parent)
+        elif issubclass(type(parent),QWidget):
+            for child in parent.children():
+                compare(child,parent.layout())
+        else: raise(Exception("Wrong parent type."))
                 
                 

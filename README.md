@@ -19,7 +19,7 @@ To run the gui:
 
 ## How to contribute
 
-This project uses the following (**italics means reccomended**):
+This project uses the following (*italics means reccomended*):
 
  - Twine: For uploading to pypi (pip repo)
  - Git: For uploading and downolading the git repo
@@ -35,6 +35,8 @@ This uses python3 and will break when using python2.
 
 ## Filestructure explained
 
+A brief description of all the significant files in this repository.
+
  - `requirements.txt` contains all of the python dependencies. If you clone the repo, use `pip install -r requirements.txtq to download the depencencies.
  - `settings.json` is a temporary file to contain the GUI's input fields.
  - `setup.py` contains the configuation for the pip package. To create a new package run `python setup.py sdist`. Upload using twine, contact me if you want permission to update the pip package.
@@ -49,13 +51,13 @@ This uses python3 and will break when using python2.
 
 ## How do I update the git repo?
 
-Either contact one of the contributers of the repo to gain permission to push commits to the repo.
-Without permission from the contributers simply fork this repo with your gihub account and make changes to your local copy. If the changes seem beneficial to all then create a pull request on this repo for us a merge your changes.
+Please contact one of the contributers of the repo to gain permission to push commits to the repo.
+
+You can still make changes to this code without permission from the contributers. Simply fork the repo with your gihub account and make changes to your personal copy. If the changes seem beneficial to all then create a pull request on this repo for us a merge your changes.
 
 
 ## How do I update the pip package?
 
-S
 Please follow my instructions here: https://gist.github.com/Tsangares/43dec5fe55447848c459224ee3f2c9f7
 
 Or read the pypi manual https://packaging.python.org/

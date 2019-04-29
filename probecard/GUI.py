@@ -39,33 +39,57 @@ else:
 
 class MainMenu(MenuWindow):
     onExperiment = pyqtSignal(str)
+    STATES={
+        'single': 'Single Pixel',
+        'many': 'Many Pixels',
+        'unique': 'Unique Mode',
+        'grounded': 'Grounded Mode',
+    }
     def __init__(self):
         #States need to be configured first to setup the toolbar
-        states=['Single Pixel','Many Pixels','Unique Mode']
+        
+        states=[e[1] for e in self.STATES.items()]
+        
         super(MainMenu,self).__init__(states)
 
         #Rename getWidget to generateMenuBaseOnJsonOptions
         menu=self.getWidget(self.getCurrentSetup(), action=self.initDuo)
-        self.setCentralWidget(menu)
-
+        
+        self.rightPane=QWidget()
+        self.splitter=QSplitter()
+        layout=QHBoxLayout(self.splitter)
+        layout.addWidget(menu)
+        layout.addWidget(self.rightPane)
+        self.rightLayout=QFormLayout(self.rightPane)
+        
+        self.setCentralWidget(self.splitter)
+        #Create state buttons
+        self.addStateButton(self.STATES['single'],'haa',lambda: print("apple"))
+        self.addStateWidget(self.STATES['single'],QLabel("HAAAA"))
+        
         self.addToolBar(self.toolbar)
 
         self.menu=menu
 
         btn=self.getToggle("debug")
-        self.menu.layout().addRow(btn,QLabel("Debug Mode"))
+        self.menu.layout().addRow(QLabel("Debug Mode"),btn)
+        self.menu.layout().addRow(self.stateWidget)
 
+        self.buildRegionButtons(self.rightLayout)#Big setup function
+        
+        self.loadAutosave()
+        self.show()
+
+    def buildRegionButtons(self,layout):
+        self.regionsLayout=layout
         self.addRegionBtn=QPushButton('Add Region')
         self.delRegionBtn=QPushButton('Delete Region')
-        menu.layout().addRow(self.delRegionBtn,self.addRegionBtn)
+        layout.addRow(self.delRegionBtn,self.addRegionBtn)
         self.addRegionBtn.clicked.connect(self.addRegion)
         self.delRegionBtn.clicked.connect(self.delRegion)
         self.regions=[]
         self.recoverRegions()
-        self.loadAutosave()
-        self.show()
-
-
+        
     def recoverRegions(self):
         settings=self.getSettings()
         if settings is None: return
@@ -75,6 +99,7 @@ class MainMenu(MenuWindow):
         
         
     def addRegion(self,msg=None):
+        layout=self.regionsLayout
         key='region_%s'%len(self.regions)
         labels=self.getLabelFromKey(key)
         dbkeys=self.getDbKeyFromKey(key)
@@ -85,11 +110,15 @@ class MainMenu(MenuWindow):
             startBtn.setReadOnly(True)
             startBtn.setStyleSheet('background-color:#eee;color:gray')
             prevEndButton.editingFinished.connect(lambda: startBtn.setText(prevEndButton.text()))
+            startBtn.setText(prevEndButton.text())
         self.regions.append(key)
-        
-        self.menu.layout().addRow(QLabel(labels['start']), startBtn)
-        self.menu.layout().addRow(QLabel(labels['end']), self.getLineEdit(dbkeys['end']))
-        self.menu.layout().addRow(QLabel(labels['steps']), self.getLineEdit(dbkeys['steps']))
+        endBtn=self.getLineEdit(dbkeys['end'])
+        stepsBtn=self.getLineEdit(dbkeys['steps'])
+        endBtn.setText("0")
+        stepsBtn.setText("0")
+        layout.addRow(QLabel(labels['start']), startBtn)
+        layout.addRow(QLabel(labels['end']), endBtn)
+        layout.addRow(QLabel(labels['steps']), stepsBtn)
 
     def getLabelFromKey(self,key):
         return {
@@ -111,27 +140,22 @@ class MainMenu(MenuWindow):
         self.regions.remove(key)
         labels=self.getLabelFromKey(key)
         for k,label in labels.items():
-            self.removeWidget(self.menu, QLabel, label)
+            self.removeWidget(self.regionsLayout, QLabel, label)
         dbkeys=self.getDbKeyFromKey(key)
         for k,dbkey in dbkeys.items():
             self.delete(dbkey)
-
-
     
     #Sourcing voltage to zero and reading current on the Agilent
     #Keithly is used to source voltage set by these options
     def getCurrentSetup(self):
         options=[
             {'name': 'Email', 'key': 'email'},
-            {'name': 'Filename', 'key': 'filename'},
+            {'name': 'Experiment Name (for excel)', 'key': 'filename'},
             {'name': 'Keithley Compliance (A)',    'key': 'kcomp'},
-            {'name': 'Agilent Hold Time (sec)',      'key': 'holdTime'},
-            {'name': 'Agilent Measurement Delay (sec)',  'key': 'measDelay'},
-            {'name': 'Agilent Measurement Time (sec)',   'key': 'measTime'},
-            {'name': 'Arduino COM port number',   'key': 'com'},
-            {'name': 'Average value over N samples', 'key': 'repeat'},
+            {'name': 'Agilent Compliance for All Chans (V)', 'key': 'acomp'},
             {'name': 'Resistance (Ohms)', 'key': 'resistance'},
-            {'name': 'Agilent Compliance for All Chans (V)', 'key': 'acomp'}
+            {'name': 'Arduino COM port number',   'key': 'com'},
+            {'name': 'Agilent Hold Time (sec)',      'key': 'holdTime'},
         ]
         return options
     
