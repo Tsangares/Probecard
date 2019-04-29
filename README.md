@@ -17,6 +17,16 @@ To run the gui:
     python -m probecard
 
 
+## How to contribute
+
+This project uses the following (**italics means reccomended**):
+
+ - Twine: For uploading to pypi (pip repo)
+ - Git: For uploading and downolading the git repo
+ - *Virtual Environment*: For python packaging version control
+
+At the bottom end of this readme you can learn more about how to update this repository.
+
 ## Notes
 
 The output files will be dumped into a folder on the desktop called probecard_output.
@@ -27,18 +37,26 @@ This uses python3 and will break when using python2.
 
  - `requirements.txt` contains all of the python dependencies. If you clone the repo, use `pip install -r requirements.txtq to download the depencencies.
  - `settings.json` is a temporary file to contain the GUI's input fields.
- - `run.cmd` is a depricated executable for windows computers.
  - `setup.py` contains the configuation for the pip package. To create a new package run `python setup.py sdist`. Upload using twine, contact me if you want permission to update the pip package.
  - `probecard` is a folder containing the source code.
-   - `devices` agilent and keithley pyvisa wrappers
-   - `interface` the base classes for the mainmenu and the experiment window.
-   - `utilities` contains an email bot and assistant to write to excel.
-   - `test` used for unit testing.
-   - `GUI.py` contains the basic contents of the main menu.
-   - `MultiChannelDaw.py`, the main daq loop, configuring the power supply and the agilent.
- 
+   - `bin` is a directory containing a small bash command to run the software. This gets linked in setup.py to be a python executable (e.g. `python -m probecard`).
+   - `daq` is a directory containing the code data collection and presentation.
+     - `MultiPixelDaq.py` takes between the probecard, powersupply and parameter analyzer in a `QThread` while displaying the data in a `DetailWindow`.
+     - `utilities` is a directory containing email and excel helper scripts to finalize data output. It also contains the controller to talk to the integrated circuit on the probecard.
+     - `windows` is a directory containing classes that describe a window to display the data collection while the software communcates with the peripherals
+   - `menu` is a directory containing helpful classes to build a menu screen
+   - `GUI.py` is the main python script that loads the main-menu to start the daq windows.
+
+## How do I update the git repo?
+
+Either contact one of the contributers of the repo to gain permission to push commits to the repo.
+Without permission from the contributers simply fork this repo with your gihub account and make changes to your local copy. If the changes seem beneficial to all then create a pull request on this repo for us a merge your changes.
+
+
 ## How do I update the pip package?
 
+S
 Please follow my instructions here: https://gist.github.com/Tsangares/43dec5fe55447848c459224ee3f2c9f7
 
 Or read the pypi manual https://packaging.python.org/
+
