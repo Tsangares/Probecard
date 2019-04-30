@@ -28,22 +28,24 @@ from matplotlib.figure import Figure
 if __package__ in [None,""]:
     #Running from git clone
     from daq import MultiPixelDaq as Daq
-    from menu import MenuWindow
+    from menu import MenuWindow,RegionWindow
+    from daq.utilities.controller_maps import Resistor
 else:
     #Running from pip install
     from .daq import MultiPixelDaq as Daq
-    from .menu import MenuWindow
+    from .menu import MenuWindow,RegionWindow
+    from .daq.utilities.controller_maps import Resistor
 
     
     
 
-class MainMenu(MenuWindow):
+class MainMenu(RegionWindow):
     onExperiment = pyqtSignal(str)
     STATES={
         'single': 'Single Pixel',
         'many': 'Many Pixels',
-        'unique': 'Unique Mode',
-        'grounded': 'Grounded Mode',
+        'all': 'All Pixels',
+        'calib': 'Calibration',
     }
     def __init__(self):
         #States need to be configured first to setup the toolbar
@@ -64,8 +66,7 @@ class MainMenu(MenuWindow):
         
         self.setCentralWidget(self.splitter)
         #Create state buttons
-        self.addStateButton(self.STATES['single'],'haa',lambda: print("apple"))
-        self.addStateWidget(self.STATES['single'],QLabel("HAAAA"))
+
         
         self.addToolBar(self.toolbar)
 
@@ -74,76 +75,27 @@ class MainMenu(MenuWindow):
         btn=self.getToggle("debug")
         self.menu.layout().addRow(QLabel("Debug Mode"),btn)
         self.menu.layout().addRow(self.stateWidget)
-
+        
         self.buildRegionButtons(self.rightLayout)#Big setup function
+        self.buildStates()
         
         self.loadAutosave()
         self.show()
 
-    def buildRegionButtons(self,layout):
-        self.regionsLayout=layout
-        self.addRegionBtn=QPushButton('Add Region')
-        self.delRegionBtn=QPushButton('Delete Region')
-        layout.addRow(self.delRegionBtn,self.addRegionBtn)
-        self.addRegionBtn.clicked.connect(self.addRegion)
-        self.delRegionBtn.clicked.connect(self.delRegion)
-        self.regions=[]
-        self.recoverRegions()
+    def buildStates(self):
+        #Single Mode
+        resistance=self.getComboBox('resistance')
+        for label in Resistor.labels: resistance.addItem(label)
+        self.addStateWidget(self.STATES['single'],(QLabel("Resistance (ohm)"),resistance))
         
-    def recoverRegions(self):
-        settings=self.getSettings()
-        if settings is None: return
-        regions = [ key for key,value in settings.items() if 'region' in key  and 'start' in key ]
-        for region in range(len(regions)):
-            self.addRegion()
-        
-        
-    def addRegion(self,msg=None):
-        layout=self.regionsLayout
-        key='region_%s'%len(self.regions)
-        labels=self.getLabelFromKey(key)
-        dbkeys=self.getDbKeyFromKey(key)
-        startBtn=self.getLineEdit(dbkeys['start'])
-        if len(self.regions) >= 1:
-            prevKey='region_%s'%(len(self.regions)-1)
-            prevEndButton=self.database[self.getDbKeyFromKey(prevKey)['end']]
-            startBtn.setReadOnly(True)
-            startBtn.setStyleSheet('background-color:#eee;color:gray')
-            prevEndButton.editingFinished.connect(lambda: startBtn.setText(prevEndButton.text()))
-            startBtn.setText(prevEndButton.text())
-        self.regions.append(key)
-        endBtn=self.getLineEdit(dbkeys['end'])
-        stepsBtn=self.getLineEdit(dbkeys['steps'])
-        endBtn.setText("0")
-        stepsBtn.setText("0")
-        layout.addRow(QLabel(labels['start']), startBtn)
-        layout.addRow(QLabel(labels['end']), endBtn)
-        layout.addRow(QLabel(labels['steps']), stepsBtn)
+        #Many Mode
 
-    def getLabelFromKey(self,key):
-        return {
-            'start': key+" Start (V)",
-            'end': key+" End (V)",
-            'steps': key+" Steps (#)",
-        }
-    def getDbKeyFromKey(self,key):
-        return {
-            'start': key+'_start',
-            'end': key+'_end',
-            'steps': key+'_steps',
-        }
-            
-    
-    def delRegion(self,msg=None):
-        if len(self.regions) == 1: return
-        key=self.regions[-1]
-        self.regions.remove(key)
-        labels=self.getLabelFromKey(key)
-        for k,label in labels.items():
-            self.removeWidget(self.regionsLayout, QLabel, label)
-        dbkeys=self.getDbKeyFromKey(key)
-        for k,dbkey in dbkeys.items():
-            self.delete(dbkey)
+
+        #All Mode
+        
+        self.addStateButton(self.STATES['many'],'haa',lambda: print("apple"))
+        self.addStateWidget(self.STATES['many'],QLabel("HAAAA"))
+
     
     #Sourcing voltage to zero and reading current on the Agilent
     #Keithly is used to source voltage set by these options
@@ -153,8 +105,7 @@ class MainMenu(MenuWindow):
             {'name': 'Experiment Name (for excel)', 'key': 'filename'},
             {'name': 'Keithley Compliance (A)',    'key': 'kcomp'},
             {'name': 'Agilent Compliance for All Chans (V)', 'key': 'acomp'},
-            {'name': 'Resistance (Ohms)', 'key': 'resistance'},
-            {'name': 'Arduino COM port number',   'key': 'com'},
+            {'name': 'Probecard controller COM port (#)',   'key': 'com'},
             {'name': 'Agilent Hold Time (sec)',      'key': 'holdTime'},
         ]
         return options

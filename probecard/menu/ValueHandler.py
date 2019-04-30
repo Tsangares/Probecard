@@ -1,30 +1,72 @@
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QLineEdit,QCheckBox
-#Value Handler simplifies getting the data from the input fields on the gui.
+from PyQt5.QtWidgets import *
+from abc import ABCMeta,abstractmethod
+
+class ValueObject():
+    __metaclass__=ABCMeta
+    @abstractmethod
+    def getValue(self):
+        '''Must return the data in the unique way the widget requires'''
+    @abstractmethod
+    def setValue(self):
+        '''Must set the states of the object from the save file'''
+        
+class LineEdit(QLineEdit,ValueObject):
+    def getValue(self):
+        return self.text()
+    def setValue(self,value):
+        return self.setText(value)
+class SpinBox(QSpinBox,ValueObject):
+    def getValue(self):
+        return self.text()
+    def setValue(self,value):
+        return self.setText(value)
+class CheckBox(QCheckBox,ValueObject):
+    def getValue(self):
+        return self.checkState()
+    def setValue(self,value):
+        return self.setCheckState(value)
+class ComboBox(QComboBox,ValueObject):
+    def getValue(self):
+        return self.currentText()
+    def setValue(self,value):
+        return self.setCurrentText(value)
+    
+#Value Handler simplifies getting the data from the input fields on the gui.    
 class ValueHandler:
     def __init__(self):
-        self.database={}
+        self._database={}
+        
+    def __setitem__(self,key,value):
+        if not issubclass(type(value),ValueObject):
+            raise(Exception("Object must inherit ValueObject."))
+        else: self._database[key]=value
+        return value
+    def __getitem__(self,key):
+        return self._database[key]
+
+    #Add just makes making the helper functions one-liners
+    def add(self,key,value):
+        self[key]=value
+        return value
+
+    #DEPRICATED: I dont want the following functions to exist anymore
     def getSpinBox(self,label):
-        self.database[label] = QSpinBox()
-        return self.database[label]
+        return self.add(label,SpinBox())
     def getLineEdit(self,label):
-        self.database[label] = QLineEdit()
-        return self.database[label]
+        return self.add(label,LineEdit())
+    def getComboBox(self,label):
+        return self.add(label,ComboBox())
     def getToggle(self,label):
-        self.database[label] = QCheckBox()
-        return self.database[label]
-    def getValue(self, key):
-        return self.database[key]
+        return self.add(label,CheckBox())
+
+    def getKeys(self):
+        return [key for key,data in self._database.items()]
+    #Returns all of the data contained the database
     def getData(self):
-        output={}
-        for key,data in self.database.items():
-            if(type(data) == QCheckBox):
-                output[key]=data.checkState()
-            else:
-                output[key]=data.text()
-        return output
+        return {key: data.getValue() for key,data in self._database.items()}
     def delete(self, key):
-        return self.database.pop(key,None)
+        return self._database.pop(key,None)
     def dump(self):
         print(self.getData())
 

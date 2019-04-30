@@ -1,4 +1,22 @@
 import array
+from .magnitudes import SI
+
+
+class Resistor:
+    R1=15*10**6
+    R2=15*10**5
+    R3=15*10**4
+    R4=15*10**3
+    R5=15*10**2
+    unit='ohms'
+    resistances=R=[R1,R2,R3,R4,R5]
+    reverseLabels={SI(r): r for r in R}
+    labels=[SI(r) for r in R]
+    
+
+    
+
+    
 # channel map for 32 bit serial shift register
 # to read out pad n, PAD[n] sets correct ssr bit high to switch channel n from ground to readout
 # note: pads are labeled as in previous readout systems.  

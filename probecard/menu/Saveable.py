@@ -1,12 +1,28 @@
 import json
 from .ValueHandler import ValueHandler
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QMainWindow,QCheckBox
+from PyQt5.QtWidgets import QMainWindow,QCheckBox,QLayout
 #Saveable UI, a way to handle the data in a UI
 #Uses ValueHandler but does not inherit it.
 class Saveable(QMainWindow,ValueHandler):
     onLoad = pyqtSignal(str)
     onSave = pyqtSignal(str)
+
+    #Helpful functions to remove objects from the screen
+    def removeWidget(self,parent, objectType, text):
+        def compare(child,layout):
+            if issubclass(type(child),objectType) and child.text() == text:
+                layout.removeRow(child)
+                
+        if issubclass(type(parent),QLayout):
+            for i in range(parent.count()):
+                obj=parent.itemAt(i)
+                if obj is not None: compare(obj.widget(),parent)
+        elif issubclass(type(parent),QWidget):
+            for child in parent.children():
+                compare(child,parent.layout())
+        else: raise(Exception("Wrong parent type."))
+                
 
     def saveSettings(self, filename="settings.json"):
         saveData=json.dumps(self.getData())
@@ -30,11 +46,7 @@ class Saveable(QMainWindow,ValueHandler):
             if data != None:
                 for key,field in data.items():
                     try:
-                        obj=self.getValue(key)
-                        if type(obj) == QCheckBox:
-                            obj.setCheckState(data[key])
-                        else:
-                            obj.setText(data[key])
+                        self[key].setValue(data[key])
                     except KeyError:
                         print("Nothing saved for %s"%key)
                 self.onLoad.emit("loaded")
