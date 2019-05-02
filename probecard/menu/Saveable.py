@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow,QCheckBox,QLayout
 class Saveable(QMainWindow,ValueHandler):
     onLoad = pyqtSignal(str)
     onSave = pyqtSignal(str)
-
+    
     #Helpful functions to remove objects from the screen
     def removeWidget(self,parent, objectType, text):
         def compare(child,layout):

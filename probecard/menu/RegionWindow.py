@@ -1,8 +1,8 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from .MenuWindow import MenuWindow
-
-class RegionWindow(MenuWindow):
+from .Saveable import Saveable
+class RegionWindow(Saveable):
 
     def buildRegionButtons(self,layout):
         self.regionsLayout=layout

@@ -28,18 +28,18 @@ from matplotlib.figure import Figure
 if __package__ in [None,""]:
     #Running from git clone
     from daq import MultiPixelDaq as Daq
-    from menu import MenuWindow,RegionWindow
+    from menu import MenuWindow,RegionWindow,StateWindow
     from daq.utilities.controller_maps import Resistor
 else:
     #Running from pip install
     from .daq import MultiPixelDaq as Daq
-    from .menu import MenuWindow,RegionWindow
+    from .menu import MenuWindow,RegionWindow,StateWindow
     from .daq.utilities.controller_maps import Resistor
 
     
     
 
-class MainMenu(RegionWindow):
+class MainMenu(StateWindow,RegionWindow,MenuWindow):
     onExperiment = pyqtSignal(str)
     STATES={
         'single': 'Single Pixel',
@@ -92,9 +92,8 @@ class MainMenu(RegionWindow):
 
 
         #All Mode
-        
-        self.addStateButton(self.STATES['many'],'haa',lambda: print("apple"))
-        self.addStateWidget(self.STATES['many'],QLabel("HAAAA"))
+        self.addStateWidget(self.STATES['all'],QLabel("All pads will be grounded in this mode."))
+
 
     
     #Sourcing voltage to zero and reading current on the Agilent
@@ -119,7 +118,7 @@ class MainMenu(RegionWindow):
 class Gui(QApplication):
 
     def __init__(self):
-        super(Gui,self).__init__(['Multi-Channel DAQ'])
+        super(Gui,self).__init__(['Probecardv1.4 DAQ'])
         self.window = MainMenu()
         self.window.onExperiment.connect(self.startExperiment)
         self.aboutToQuit.connect(self.window.exit)

@@ -2,6 +2,7 @@ from .Saveable import Saveable
 from .ValueHandler import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from abc import ABCMeta,abstractmethod
 #Menu Window inherits Stateful <- Saveable <- QMainWindow & ValueHandler
 # It is mainly suposed to be a QMainWindow object with functions
 # that assist with creating a casual input fields and buttons.
@@ -9,14 +10,12 @@ from PyQt5.QtWidgets import *
 # Saveable means it autosaves fields on exit.
 # Valuehadler is essentially a database to make running the experiment easier.
 # The tool bar is a set of radio buttons representing possible states.
-
 class Stateful(Saveable):
     onStateChange = pyqtSignal(str)
     def __init__(self):
         super(Stateful,self).__init__()
         self.state=None
-        self.onLoad.connect(lambda: self.setState(self['state'].getValue()))
-
+        
     def getState(self):
         return self.state
 
@@ -30,6 +29,8 @@ class StateWindow(Stateful):
     def __init__(self, states=[]):
         super(StateWindow,self).__init__()
         self.states=states
+        self.onLoad.connect(lambda: self.setState(self['state'].getValue()))
+        self.onStateChange.connect(self.purgeState)
         self.toolbar = QToolBar()
         #self.addToolBar(self.toolbar)
         self.buildToolBar()
@@ -40,15 +41,12 @@ class StateWindow(Stateful):
         self.stateLabel.setStyleSheet("color: #aaa;font-family: monospace;")
         self.stateWidget.layout().addRow(self.stateLabel)
         self.stateCache={}
-        self.onStateChange.connect(self.purgeState)
-        
-        
+
     #Call refreshToolbar when the state changes.
     def setState(self,state):
         self.refreshToolbar(state)
         return super(StateWindow,self).setState(state)
-        
-
+    
     #Tries to visually match a state with a toolbar option.
     def refreshToolbar(self,state):
         for btn in self.getToolbarButtons():

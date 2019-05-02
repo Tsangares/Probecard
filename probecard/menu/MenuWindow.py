@@ -1,10 +1,11 @@
 from .StateWindow import StateWindow
 from .ValueHandler import *
+from .Saveable import Saveable
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 #Makes a menu of label-lineedits with a start button
-class MenuWindow(StateWindow):
+class MenuWindow(Saveable):
     #Converts a dict of <name,key> objects to a form.
     #The `name` is a human readable descriptior,
     # and `key` pulls options from the gui to give to the experiment's code
