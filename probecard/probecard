@@ -1,0 +1,84 @@
+#! /usr/bin/env python
+# coding: utf-8
+"""
+Contains a MainMenu, with all of the configuaration variables defined.
+The Gui class simple instantiates the MainMenu and handles window switching.
+ - WCW 181127
+"""
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+
+import platform
+if 'darwin' in platform.system().lower():
+    import matplotlib
+    matplotlib.use('TkAgg') #Mac support
+    
+import matplotlib.pyplot as plt
+
+if __package__ in [None,""]:
+    #Running from git clone
+    from daq import MultiPixelDaq
+    from menu import MenuWindow
+else:
+    #Running from pip install
+    from .daq import MultiPixelDaq
+    from .menu import MenuWindow
+
+
+
+#Gui's in general have a lot of boiler plate code.
+class Gui(QApplication):
+
+    def __init__(self):
+        super(Gui,self).__init__(['Probecardv1.4 DAQ'])
+
+    def addMenu(self,menuWindow):
+        self.window = menuWindow
+        self.window.onExperiment.connect(self.startExperiment)
+        self.aboutToQuit.connect(self.window.exit)
+        self.exec_()
+        
+    def startExperiment(self,msg):
+        self.window.saveSettings()
+        data = self.window.getData()
+        self.window.close()
+        if msg=='single':
+            print(msg)
+        elif msg == 'multi':
+            self.window = MultiPixelDaq(data)
+            self.window.onFinish.connect(self.restore)
+        elif msg=='all':
+            print(msg)
+        elif msg=='calib':
+            print(msg)
+        else:
+            print("error: wrong init.",msg)
+            
+    def restore(self,msg):
+        self.window = MainMenu()
+        self.window.onExperiment.connect(self.startExperiment)
+        self.aboutToQuit.connect(self.window.exit)
+
+
+def five():
+    return 6
+
+if __name__ == "__main__":
+    states={
+        'single': 'Single Pixel',
+        'multi': 'Multi Pixels',
+        'all': 'All Pixels',
+        'calib': 'Calibration',
+    }
+    options=[
+        ('Email', 'email','name@email.com'),
+        ('Experiment Name (for excel)', 'filename','filename'),
+        ('Keithley Compliance (A)', 'kcomp','0'),
+        ('Probecard controller COM port (#)',   'com','1'),
+        ('Agilent Hold Time (sec)', 'holdTime','1'),
+    ]
+    gui=Gui()
+    menuWindow=MenuWindow(options,states)
+    menuWindow.addStateWidget(states['multi'],(QLabel('Agilent Compliance (A)'),menuWindow.getLineEdit('acomp')))
+    gui.addMenu(menuWindow)
+

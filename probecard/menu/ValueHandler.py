@@ -45,6 +45,11 @@ class ValueHandler:
     def __getitem__(self,key):
         return self._database[key]
 
+    def items(self):
+        return self._database.items()
+
+    def getKeys(self):
+        return [key for key,item in self.items()]
     #Add just makes making the helper functions one-liners
     def add(self,key,value):
         self[key]=value
@@ -53,18 +58,17 @@ class ValueHandler:
     #DEPRICATED: I dont want the following functions to exist anymore
     def getSpinBox(self,label):
         return self.add(label,SpinBox())
-    def getLineEdit(self,label):
-        return self.add(label,LineEdit())
+    def getLineEdit(self,label,default=None):
+        return self.add(label,LineEdit(default))
     def getComboBox(self,label):
         return self.add(label,ComboBox())
     def getToggle(self,label):
         return self.add(label,CheckBox())
-
     def getKeys(self):
         return [key for key,data in self._database.items()]
     #Returns all of the data contained the database
     def getData(self):
-        return {key: data.getValue() for key,data in self._database.items()}
+        return {key: data.getValue() for key,data in self.items()}
     def delete(self, key):
         return self._database.pop(key,None)
     def dump(self):

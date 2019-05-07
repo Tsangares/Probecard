@@ -1,41 +1,48 @@
+from abc import ABC,abstractmethod
 from .StateWindow import StateWindow
-from .ValueHandler import *
-from .Saveable import Saveable
+from .RegionWindow import RegionWindow
+from .MenuWidget import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-#Makes a menu of label-lineedits with a start button
-class MenuWindow(Saveable):
-    #Converts a dict of <name,key> objects to a form.
-    #The `name` is a human readable descriptior,
-    # and `key` pulls options from the gui to give to the experiment's code
-    def getMenuLayout(self,options):
-        layout = QFormLayout()
-        keys=self.getKeys()
-        for opt in options:
-            key=opt['key']
-            if key in keys:
-                print("Handling a duplicate key, %s"%key)
-                layout.addRow(QLabel(opt['name']),self[key])
-            else:
-                layout.addRow(QLabel(opt['name']),self.getLineEdit(key))
-        layout.setContentsMargins(20,20,20,20)
-        layout.setSpacing(5)
-        return layout
 
-    #Generates the fields based on options and sets up the standard buttons.
-    def getMenuWidget(self,options,action=None,name=None):
-        widget = QWidget()
-        widget.setAccessibleName(name)
+class MenuWindow(StateWindow,RegionWindow):
+    onExperiment = pyqtSignal(str)
+    def __init__(self,options,states):
+        super(MenuWindow,self).__init__()
+        self.statesMap=states
+        self.options=options
+
+        #-- Build general layout --#
+        self.setCentralWidget(QSplitter())
+        layout=QHBoxLayout(self.centralWidget())
+
+        #rightPane is a widget vertially laid out in a form.
+        getState=lambda: self.onExperiment.emit(_states[self.getState()])
+        leftPane=MenuActionWidget(self.options, self, action=getState, action_text='Start Aquiring Data')
+        self.centralWidget().layout().addWidget(leftPane)
+
+
+        #rightPane is a widget vertially laid out in a form.
+        rightWidget=QWidget()
+        rightPane=QFormLayout(rightWidget).parentWidget()
+        self.centralWidget().layout().addWidget(rightPane)
+
+        #-- StateWindow Config --#
+        for state,name in self.statesMap.items(): self.addState(name)
+        self.addToolBar(self.toolbar)#Add State toolbar
         
-        #Get options
-        layout=self.getMenuLayout(options)
-        widget.setLayout(layout)
-        
-        #Setup buttons
-        startBtn=QPushButton('Start')
-        if action != None: startBtn.clicked.connect(action)
-        layout.addRow(startBtn)
-        
-        return widget
-                
+        #-- RegionWindow Config --#
+        self.buildRegionButtons(rightPane.layout())#Big setup function
+
+        #-- DEBUG --#
+        btn=self.getToggle("debug")
+        leftPane.layout().addRow(QLabel("Debug Mode"),btn)
+        leftPane.layout().addRow(self.stateWidget)
+
+        _states={data:key for key,data in self.statesMap.items()}
+
+
+        #-- Save Setup --#
+        self.loadAutosave()
+        self.show()

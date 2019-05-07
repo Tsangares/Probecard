@@ -26,14 +26,19 @@ class Stateful(Saveable):
         return state
 
 class StateWindow(Stateful):
-    def __init__(self, states=[]):
+    def __init__(self):
         super(StateWindow,self).__init__()
-        self.states=states
+        self.states=[]
         self.onLoad.connect(lambda: self.setState(self['state'].getValue()))
         self.onStateChange.connect(self.purgeState)
         self.toolbar = QToolBar()
         #self.addToolBar(self.toolbar)
-        self.buildToolBar()
+
+        #Setup a toolbar
+        toolbarContainer = QWidget()
+        self.stateLayout=QHBoxLayout(toolbarContainer)
+        self['state']=LineEdit()
+        self.toolbar.addWidget(toolbarContainer)
         
         self.stateWidget=QFrame()
         QFormLayout(self.stateWidget)
@@ -42,6 +47,13 @@ class StateWindow(Stateful):
         self.stateWidget.layout().addRow(self.stateLabel)
         self.stateCache={}
 
+    def addState(self,state):
+        self.states.append(state)
+        btn=QRadioButton(state)
+        btn.clicked.connect(lambda a=True,b=btn: self.setState(b.text()))
+        self.stateLayout.addWidget(btn)
+
+        
     #Call refreshToolbar when the state changes.
     def setState(self,state):
         self.refreshToolbar(state)
@@ -63,19 +75,6 @@ class StateWindow(Stateful):
                     if type(c) == QRadioButton:
                         out.append(c)
         return out
-
-    #Toolbar is used to switch between main-widgets/experiments
-    #This takes the variable, self.states
-    def buildToolBar(self):
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
-        self['state']=LineEdit()
-        for state in self.states:
-            btn=QRadioButton(state)
-            btn.clicked.connect(lambda a=True,b=btn: self.setState(b.text()))
-            layout.addWidget(btn)
-        self.toolbar.addWidget(widget)
-
 
     #Converts a dict of <name,key> objects to a form.
     #The `name` is a human readable descriptior,
@@ -128,7 +127,10 @@ class StateWindow(Stateful):
         self.checkState(currentState)
         #Destruction
         for child in self.stateWidget.children():
-            if issubclass(type(child),QWidget) and child not in self.stateCache[currentState]+[self.stateLabel]:
+            hide=self.stateCache[currentState]
+            if len(self.stateCache[currentState])>0:
+                hide+=[self.stateLabel]
+            if issubclass(type(child),QWidget) and child not in hide:
                 child.hide()
         #Creation
         for widget in self.stateCache[currentState]:

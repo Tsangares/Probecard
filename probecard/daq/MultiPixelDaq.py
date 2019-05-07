@@ -28,6 +28,7 @@ from  contraption.PowerSupply import *
 from  contraption.Agilent import Agilent4155C
 from  contraption.Arduino import Max
 
+from .utilities.controller_maps import Resistor
 from .utilities import writeExcel,attachFile,send_mail
 from .windows import IV_Window
 
@@ -43,16 +44,16 @@ def getChan(chan):
         25:'3' , 24:'2' , 23:'BB', 22:'AA', 21:'Z' ,
         20:'C' , 19:'A' , 18:'1' , 17:'24', 16:'22',
         15:'K' , 14:'B' , 13:'12', 12:'23', 11:'S' ,
-        10:'10' ,  9:'11',  8:'13',  7:'14',  6:'15',
-        5:'L' ,  4:'M' ,  3:'N' ,  2:'P' ,  1:'R' ,
+        10:'10',  9:'11',  8:'13',  7:'14',  6:'15',
+        5:'L' ,   4:'M' ,  3:'N' ,  2:'P' ,  1:'R' ,
         99: 'pass-empty', 26: 'pass-guard',
     }
     map2={
         25:'(1,5)' , 24:'(2,5)' , 23:'(3,5)', 22:'(4,5)', 21:'(5,5)' ,
-        20:'(1,4)' , 19:'(2,4)' , 18:'(3,4)' , 17:'(4,4)', 16:'(5,4)',
+        20:'(1,4)' , 19:'(2,4)' , 18:'(3,4)', 17:'(4,4)', 16:'(5,4)',
         15:'(1,3)' , 14:'(2,3)' , 13:'(3,3)', 12:'(4,3)', 11:'(5,3)' ,
-        10:'(1,2)' ,  9:'(2,2)',  8:'(3,2)',  7:'(4,2)',  6:'(5,2)',
-         5:'(1,1)' ,  4:'(2,1)' ,  3:'(3,1)' ,  2:'(4,1)' ,  1:'(5,1)' ,
+        10:'(1,2)' ,  9:'(2,2)',   8:'(3,2)',  7:'(4,2)',  6:'(5,2)',
+         5:'(1,1)' ,  4:'(2,1)' ,  3:'(3,1)',  2:'(4,1)' ,  1:'(5,1)' ,
         99: 'pass-empty', 26: 'pass-guard',
     }
     try:
@@ -211,9 +212,7 @@ class DaqProtocol(QThread):
         #Currently only supporting getting from GUI options
         #The input variable chan here will corespond to the channel
         #Use lookup table to find this resistance.
-        if self.options['resistance'] == 0:
-            raise(Exception("Resistance must not be zero!"))
-        return float(self.options['resistance'])
+        return float(Resistor.reverseLabels[self.options['resistance']])
     
     def checkCompliance(self,meas):
         comp=float(self.options['acomp'])
