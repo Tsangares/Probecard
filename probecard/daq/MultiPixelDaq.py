@@ -212,7 +212,8 @@ class DaqProtocol(QThread):
         #Currently only supporting getting from GUI options
         #The input variable chan here will corespond to the channel
         #Use lookup table to find this resistance.
-        return float(Resistor.reverseLabels[self.options['resistance']])
+        #return float(Resistor.reverseLabels[self.options['resistance']])
+        return float(1)
     
     def checkCompliance(self,meas):
         comp=float(self.options['acomp'])
@@ -281,6 +282,7 @@ class DaqProtocol(QThread):
                         cache[channel].append(amps)
                     self.log("Chan %s reads %.03e A"%(channel,amps))
             cache={key: stat.mean(vals) for key,vals in cache.items()}
+            print((volt,cache))
             if repeat is 1 and limit is not None: self.newSample.emit((volt,cache))
             #Appends cache to measurements
             meas={**meas, **cache}

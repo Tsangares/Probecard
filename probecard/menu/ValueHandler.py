@@ -50,12 +50,13 @@ class ValueHandler:
 
     def getKeys(self):
         return [key for key,item in self.items()]
+    
     #Add just makes making the helper functions one-liners
     def add(self,key,value):
         self[key]=value
         return value
 
-    #DEPRICATED: I dont want the following functions to exist anymore
+    #These are just helper functions to make adding a saveable QWidget easier
     def getSpinBox(self,label):
         return self.add(label,SpinBox())
     def getLineEdit(self,label,default=None):

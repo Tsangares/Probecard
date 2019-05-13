@@ -17,18 +17,17 @@ import matplotlib.pyplot as plt
 
 if __package__ in [None,""]:
     #Running from git clone
-    from daq import MultiPixelDaq
-    from menu import MenuWindow
+    from daq import *
+    from menu import TwoPaneWindow
 else:
     #Running from pip install
-    from .daq import MultiPixelDaq
-    from .menu import MenuWindow
+    from .daq import *
+    from .menu import TwoPaneWindow
 
 
 
 #Gui's in general have a lot of boiler plate code.
 class Gui(QApplication):
-
     def __init__(self):
         super(Gui,self).__init__(['Probecardv1.4 DAQ'])
 
@@ -37,12 +36,15 @@ class Gui(QApplication):
         self.window.onExperiment.connect(self.startExperiment)
         self.aboutToQuit.connect(self.window.exit)
         self.exec_()
-        
     def startExperiment(self,msg):
         self.window.saveSettings()
         data = self.window.getData()
         self.window.close()
         if msg=='single':
+            self.window=BasicDaqWindow() #QWindow
+            self.daq=SinglePixelDaq() #QThread
+            self.daq.
+                                     
             print(msg)
         elif msg == 'multi':
             self.window = MultiPixelDaq(data)
@@ -67,7 +69,7 @@ if __name__ == "__main__":
     states={
         'single': 'Single Pixel',
         'multi': 'Multi Pixels',
-        'all': 'All Pixels',
+        'all': 'Total Current',
         'calib': 'Calibration',
     }
     options=[
@@ -78,7 +80,7 @@ if __name__ == "__main__":
         ('Agilent Hold Time (sec)', 'holdTime','1'),
     ]
     gui=Gui()
-    menuWindow=MenuWindow(options,states)
+    menuWindow=TwoPaneWindow(options,states)
     menuWindow.addStateWidget(states['multi'],(QLabel('Agilent Compliance (A)'),menuWindow.getLineEdit('acomp')))
     gui.addMenu(menuWindow)
 

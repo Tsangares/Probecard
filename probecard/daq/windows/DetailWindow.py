@@ -22,23 +22,69 @@ It also has a multi-subplot matplotlib canvas, and a custom menu section.
 
 class DetailWindow(QMainWindow):
     __metaclass__=ABCMeta
+
+    @abstractmethod
+    def addPoint(self,point):
+        """
+        It is required to overwrite this funciton
+        In this function add your data to the cache
+        You can plot also or make a seperate function for plotting.
+        Look at refresh in SinglePixelDaq.py for an example
+        """
+        
     def __init__(self):
         super(DetailWindow,self).__init__()
-        self.cache={}
-        self.figs=[]
         self.output=None
-        canvas,figure = self.getCanvas()
-        self.figure=figure #Pyplot
-        self.canvas=canvas #QWidget
+        
+        #-- Setup Figures --#
+        self._cache={}
+        self.figs=[]
+        self.figure=plt.figure() #Pyplot
+        self.canvas=FigureCanvas(self.figure) #QWidget
+        self.fig=self.figure.add_subplot(1,1,1)
+        
+        #-- Build Window --#
+        self.setCentralWidget(QSplitter())
+        layout=QHBoxLayout(self.centralWidget())
+        menu=QWidget()
+        self.menuLayout=QFormLayout(menu)
+        self.menuLayout.addRow(self.getOutputBox())
+        layout.addWidget(self.canvas)
+        layout.addWidget(menu)
 
-        self.mainWidget=QSplitter()
-        self.setCentralWidget(self.mainWidget)
-        layout=QHBoxLayout(self.mainWidget)
-        menu,menuLayout=self.getMenu()
-        self.menuLayout=menuLayout
-        layout.addWidget(menu)        
-        layout.addWidget(canvas)
-            
+    #Returns the cache in tuple format so its easier to loop
+    def getCache(self):
+        return self._cache.items()
+
+    #If you really need the data from a specific channel use this:
+    #Example: self['chan1']
+    def __getitems__(self,key):
+        return self._cache[key]
+
+    #Clear the plot
+    def clear(self):
+        self.fig.clear()
+        
+    #Draw the plot
+    def draw(self):
+        self.canvas.draw()
+
+    #Add value to the plotting cache
+    def cache(self,key,value):
+        keys=[key for key,values in self._cache.items()]
+        if key in keys:
+            self._cache[key].append(value)
+        else:
+            self._cache[key]=[value]
+
+    #Write a line in the OutputBox
+    def log(self,*args):
+        text=""
+        if len(args) == 1 and type(args[0]) == tuple: args=args[0]
+        for arg in args: text+=" %s"%str(arg)
+        self.output.insertRow(0,QLabel("%.02f"%(time.time()%10000)),QLabel(text))
+
+    #Defines the scroll area used for logging.
     def getOutputBox(self):
         scroll=QScrollArea()
         output=QWidget()
@@ -50,34 +96,3 @@ class DetailWindow(QMainWindow):
         self.output=layout
         return scroll
 
-    def getMenu(self):
-        menu=QWidget()
-        layout=QFormLayout(menu)
-        layout.addRow(self.getOutputBox())
-        return menu,layout
-        
-    def getCanvas(self):
-        figure=plt.figure()
-        canvas=FigureCanvas(figure)
-        self.testJumple()
-        return canvas,figure
-            
-    def log(self,*args):
-        text=""
-        if len(args) == 1 and type(args[0]) == tuple: args=args[0]
-        for arg in args: text+=" %s"%str(arg)
-        self.output.insertRow(0,QLabel("%.02f"%(time.time()%10000)),QLabel(text))
-
-    #All on one plot.
-        #Assuming a point is of the form (float,key:float)
-    @abstractmethod
-    def addPoint(self,point):
-        """Use point to plot into self.fig"""
-
-    def clearPlot(self,msg=None):
-        self.cache={}
-
-    def testJumple(self):
-        for fig in self.figs:
-            fig.plot([x for x in range(100)],[random() for y in range(100)])
-        

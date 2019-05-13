@@ -6,10 +6,10 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 
-class MenuWindow(StateWindow,RegionWindow):
+class TwoPaneWindow(StateWindow,RegionWindow):
     onExperiment = pyqtSignal(str)
     def __init__(self,options,states):
-        super(MenuWindow,self).__init__()
+        super(TwoPaneWindow,self).__init__()
         self.statesMap=states
         self.options=options
 
