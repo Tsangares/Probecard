@@ -19,7 +19,10 @@ def writeExcel(data,filename,time=True,excel_folder=None):
     timestamp=datetime.today().strftime("_%Y_%b%d_%I.%M%p")
     if time:
         filename = filename+timestamp
-    file_url="%s%s.xlsx"%(excel_folder,filename)
+    postfix='.xlsx'
+    if '.xlsx' in filename:
+        postfix=''
+    file_url="%s%s%s"%(excel_folder,filename,postfix)
     workbook=xlsxwriter.Workbook(file_url)
     worksheet=workbook.add_worksheet()
     #Get parameters

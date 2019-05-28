@@ -20,10 +20,7 @@ def send_mail(attached_file_name, recipients, files=[]):
     email_message = MIMEMultipart()
     email_message['Subject'] = 'Experiment Data'
     email_message['From'] = EMAIL_USERNAME
-    try:
-        email_message['To'] = ", ".join(recipients)
-    except Exception:
-        email_message['To'] = recipients #one recipient
+    email_message['To']=recipients #one recipient
             
     email_message['Date'] = formatdate(localtime=True)
     email_message.attach(MIMEText("Your experiment has finished!"))

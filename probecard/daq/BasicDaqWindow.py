@@ -14,18 +14,24 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QLabel,QPushButton,QApplication
 from random import random
 from time import sleep
+from io import BytesIO
 if __package__ in [None,""]:
     from windows import DetailWindow
+    from FinalizeDataThread import FinalizeDataThread
 else:
     from .windows import DetailWindow
+    from .FinalizeDataThread import FinalizeDataThread
 
 class BasicDaqWindow(DetailWindow):
-    def __init__(self):
+    done=pyqtSignal(str)
+    def __init__(self,options):
         super(BasicDaqWindow,self).__init__()
+        self.options=options
         self.volts=[]
         self.buildPlot()
         self.show()
 
+    
     def buildPlot(self):
         #Setup the figure with x,y label and title.
         #self.fig.invert_xaxis()
@@ -50,6 +56,31 @@ class BasicDaqWindow(DetailWindow):
             volts=self.volts[:len(values)]
             self.fig.plot(volts,values,label=chan)
         self.draw()
+
+    #Returns a dict of all the data in the plot
+    def getData(self):
+        output=self._cache.copy()
+        output['voltage']=self.volts.copy()
+        return output
+
+    def getFigureData(self):
+        imgdata = BytesIO()
+        self.figure.savefig(imgdata, format='png')
+        imgdata.seek(0)
+        return imgdata.getbuffer()
+    
+    def finalize(self):
+        filename=self.options['filename']
+        email=self.options['email']
+        data=self.getData()
+        figure=self.getFigureData()
+        f=FinalizeDataThread(filename,email,data,figure)
+        f.log.connect(self.log)
+        f.done.connect(lambda: self.done.emit('done'))
+        f.done.connect(lambda: self.close())
+        sleep(1)
+        f.run()
+    
 
 #EXAMPLE QThread        
 class TestPlotting(QThread):

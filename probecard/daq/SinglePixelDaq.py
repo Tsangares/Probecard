@@ -26,32 +26,47 @@ To implement a new daq:
  Warning: The hardest part is implementing the voltage regions.
 '''
 class SinglePixelDaq(BaseProbecardThread):
-    newPoint=pyqtSignal(float,float,str,bool)
 
     def run(self):
         super(SinglePixelDaq,self).run()
         if not self.debugMode:
             self.setVoltageMode(self.options['acomp'])
             self.controller.setGain(1) #highest resistance
-        self.regions=self.getRegions()
-        for region in self.regions:
-            start=float(region['start'])
-            end=float(region['end'])
-            steps=int(region['steps'])
-            self.sweepRegion(start,end,steps)
-            
-    def sweepRegion(self,start,end,steps):
-        volts=[n*(end-start)/(steps-1)+start for n in range(steps)]
-        for volt in volts:
-            self.getValues(volt)
-        
+        voltages=self.getVoltageRegions()
+        compliance=float(self.options['kcomp'])
+        for volt in voltages:
+            keithleyCurrent,agilentCurrents=self.getValues(volt)
+            for channel,current in agilentCurrents.items():
+                self.softwareCompliance(current,compliance)
+                self.emit(volt,current,channel,refresh=False)
+            self.emit(volt,keithleyCurrent,'keithley',refresh=True)
+        self.log.emit("Finished data taking.")
+        self.done.emit('done')
+        self.quit()
+                
+    def checkGain(self,voltage):
+        if voltage > 13:
+            print("Gain is too high, dropping",values)
+            self.controller.dropGain()
+
+    def getCurrents(self):
+        values=self.readAgilent()
+        currents={}
+        for channel,voltage in values.items():
+            self.checkGain(voltage)
+            if not self.debugMode:
+                currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
+            else:
+                currents['V%s'%channel[-1]] = voltage
+        return currents
+    
     def getValues(self,volt):
-        #Single Pixel?
-        if not self.debugMode:
-            self.setVoltage(volt)
-            time.sleep(.5)
-            current=self.readKeithley()
-            voltages=self.readAgilent() #Only need 1 volt value (which channel?)
+        #Single Pixel
+        self.setVoltage(volt)
+        sleep(.5)
+        keithley=self.readKeithley()
+        agilent=self.getCurrents()
+        return keithley,agilent
             
         
     

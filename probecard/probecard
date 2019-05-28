@@ -32,6 +32,7 @@ class Gui(QApplication):
         super(Gui,self).__init__(['Probecardv1.4 DAQ'])
 
     def addMenu(self,menuWindow):
+        self.menuWindow=menuWindow
         self.window = menuWindow
         self.window.onExperiment.connect(self.startExperiment)
         self.aboutToQuit.connect(self.window.exit)
@@ -40,13 +41,14 @@ class Gui(QApplication):
         self.window.saveSettings()
         options = self.window.getData() #Menu options
         self.window.close()
-        print(options)
+        #print("Settings pulled from menu: ",options)
+        self.window=BasicDaqWindow(options) #QWindow
         if msg=='single':
-            self.window=BasicDaqWindow() #QWindow
             self.daq=SinglePixelDaq(options) #QThread
             self.daq.newData.connect(self.window.addPoint)
+            self.daq.done.connect(self.window.finalize)
+            self.daq.log.connect(self.window.log)
             self.daq.start()
-            self.window.show()
         elif msg == 'multi':
             self.window = MultiPixelDaq(data)
             self.window.onFinish.connect(self.restore)
@@ -57,9 +59,13 @@ class Gui(QApplication):
         else:
             print("error: wrong init.",msg)
             
+        self.window.done.connect(self.restore)
+        self.window.show()
+            
     def restore(self,msg):
-        self.window = MainMenu()
-        self.window.onExperiment.connect(self.startExperiment)
+        self.window = menuWindow
+        self.window.show()
+        #self.window.onExperiment.connect(self.startExperiment)
         self.aboutToQuit.connect(self.window.exit)
 
 

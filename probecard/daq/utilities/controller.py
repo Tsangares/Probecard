@@ -76,6 +76,12 @@ class Controller:
             sr_data_mod = sr_data ^ self.INVERT
             self.writeSerialRegister(sr_data_mod)
 
+    def dropGain(self):
+        if gain+1 > 5:
+            print("GAIN is too high but cannot drop any farther!")
+        #Maybe a dangerous to just break if the gain is out of range?
+        self.setGain(gain+1)
+        
     #Sets the gain resistor (See resistor class in controller_maps).
     def setGain(self,gain):
         self.writeByte(self.OP_CODE['SET_GAIN'])

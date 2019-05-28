@@ -21,6 +21,8 @@ Things to do:
 #Implements basic agilent, keithley and arduino communications
 class BaseProbecardThread(QThread):
     newData=pyqtSignal(float,float,str,bool)
+    log=pyqtSignal(str)
+    done=pyqtSignal(str)
     agilentModes={
         'readCurrent': 'current',
         'readVoltage': 'volt',
@@ -56,20 +58,26 @@ class BaseProbecardThread(QThread):
         self.agilent.setHoldTime(float(kwargs['holdTime']))
 
     #Get either voltage or current from agilent
+    #Returns a dict of the form {'I1': .03,'V2': 1.3,'V3': .1,'I4': .55}
+    #Where I1 means it is reading current on channel 1.
     def readAgilent(self):
         if not self.debugMode:
             return self.agilent.read()
+        else:
+            return {'V%d'%i: random() for i in range(1,5)}
 
     #Get current from keithley
-
     def readKeithley(self):
         if not self.debugMode:
             return self.keithley.get_current()
+        else:
+            return random()
 
     #Set voltage on powersupply
     def setVoltage(self,volt):
         if not self.debugMode:
             self.keithley.set_output(volt)
+        self.log.emit("Voltage set to %s"%volt)
 
     def setCurrentMode(self):
         for i in range(1,5): #Enable all channels
@@ -96,14 +104,18 @@ class BaseProbecardThread(QThread):
     #meas is a list of doubles
     #returns a percentage of the measurements that have reaches compliance
     def softwareCompliance(self,meas,compliance):
-        if issubtype(type(meas),float): meas=[abs(meas)]
-        if self.controller.isMode('voltage'):
-            currents=[abs(meas/self.controller.getResistance())]
-        else: currents=[abs(I) for I in meas]
+        if issubclass(type(meas),float): meas=[abs(meas)]
+        currents=[abs(I) for I in meas]
         breached=len([I for I in currents if I > abs(compliance)])
         return float(breached)/len(currents)
-    
-    def getRegions(self):
+
+    def emit(self,volt,value,chan,refresh=True):
+        #Emits to the window to plot
+        #refresh means the plot will redraw 
+        self.newData.emit(volt,value,chan,refresh)
+
+    #Converts the region data into a list of all the voltages to step through
+    def getVoltageRegions(self):
         #Assuming the region info is in self.options and from RegionWindow.py
         #Filter out all the option with regions_ in the key
         allRegions=[(key,val) for key,val in self.options.items() if 'region_' in key]
@@ -124,12 +136,13 @@ class BaseProbecardThread(QThread):
                 print("Regions Check: ",regions)
                 raise Exception("Gaps in the voltage regions!")
 
-        #Now you can access regions like:
-        # regions[0]['start'] for the first region's start voltage.
-        return regions
-
-    def emit(self,volt,value,chan,refresh=True):
-        #Emits to the window to plot
-        #refresh means the plot will redraw 
-        self.newData.emit(volt,value,chan,refresh)
+        voltages=[]
+        for region in regions:
+            start=float(region['start'])
+            end=float(region['end'])
+            steps=int(region['steps'])
+            volts=[n*(end-start)/(steps)+start for n in range(steps)]
+            voltages+=volts
+        voltages.append(float(regions[-1]['end']))
+        return voltages
 
