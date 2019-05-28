@@ -23,8 +23,11 @@ class SpinBox(QSpinBox,ValueObject):
         return self.setText(value)
 class CheckBox(QCheckBox,ValueObject):
     def getValue(self):
-        return self.checkState()
+        return self.checkState()==2
     def setValue(self,value):
+        if issubclass(type(value),bool):
+            if value: value=2
+            else: value=0
         return self.setCheckState(value)
 class ComboBox(QComboBox,ValueObject):
     def getValue(self):

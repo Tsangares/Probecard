@@ -28,7 +28,7 @@ from  contraption.PowerSupply import *
 from  contraption.Agilent import Agilent4155C
 from  contraption.Arduino import Max
 
-from .utilities.controller_maps import Resistor
+#from .utilities.controller_maps import Resistor
 from .utilities import writeExcel,attachFile,send_mail
 from .windows import IV_Window
 
@@ -99,12 +99,12 @@ class DaqProtocol(QThread):
         #Connect to instruments
         port = 0
         self.arduino=None
-        if self.options['debug'] == 0:
+        if self.options['debug'] == False:
             #DEBUG IS OFF (DANGEROUS)
             self.DEBUG=False
             self.KEITHLEY=True
             self.ARDUINO=True
-        elif self.options['debug'] == 2:
+        elif self.options['debug'] == True:
             self.DEBUG=True
             self.KEITHLEY=False
             self.ARDUINO=False

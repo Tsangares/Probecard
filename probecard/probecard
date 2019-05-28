@@ -38,14 +38,15 @@ class Gui(QApplication):
         self.exec_()
     def startExperiment(self,msg):
         self.window.saveSettings()
-        data = self.window.getData()
+        options = self.window.getData() #Menu options
         self.window.close()
+        print(options)
         if msg=='single':
             self.window=BasicDaqWindow() #QWindow
-            self.daq=SinglePixelDaq() #QThread
-            self.daq.
-                                     
-            print(msg)
+            self.daq=SinglePixelDaq(options) #QThread
+            self.daq.newData.connect(self.window.addPoint)
+            self.daq.start()
+            self.window.show()
         elif msg == 'multi':
             self.window = MultiPixelDaq(data)
             self.window.onFinish.connect(self.restore)
@@ -75,9 +76,9 @@ if __name__ == "__main__":
     options=[
         ('Email', 'email','name@email.com'),
         ('Experiment Name (for excel)', 'filename','filename'),
-        ('Keithley Compliance (A)', 'kcomp','0'),
-        ('Probecard controller COM port (#)',   'com','1'),
-        ('Agilent Hold Time (sec)', 'holdTime','1'),
+        ('Keithley Compliance (A)', 'kcomp'),
+        ('Probecard controller COM port (#)',   'com'),
+        ('Agilent Hold Time (sec)', 'holdTime'),
     ]
     gui=Gui()
     menuWindow=TwoPaneWindow(options,states)

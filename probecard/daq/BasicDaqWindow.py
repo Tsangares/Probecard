@@ -25,9 +25,6 @@ class BasicDaqWindow(DetailWindow):
         self.volts=[]
         self.buildPlot()
         self.show()
-        
-    def sim():
-        pass
 
     def buildPlot(self):
         #Setup the figure with x,y label and title.
@@ -37,6 +34,7 @@ class BasicDaqWindow(DetailWindow):
         self.fig.set_title("Multichannel Current vs Voltage")
 
     #Input a voltage, current, on a given channel and plot it.
+    #addPoint(float,float,string,bool)
     def addPoint(self,volt,value,chan,refresh=False):
         #Only unique/new voltages are added to the voltage list.
         if len(self.volts)==0 or self.volts[-1]!=volt:
@@ -53,6 +51,7 @@ class BasicDaqWindow(DetailWindow):
             self.fig.plot(volts,values,label=chan)
         self.draw()
 
+#EXAMPLE QThread        
 class TestPlotting(QThread):
     newPoint=pyqtSignal(float,float,str,bool)
     def run(self):

@@ -234,21 +234,21 @@ def write_byte(ArduinoSerial, data):
 
 def help():
     print("enter opcode: ")
-    print(" V   - enable voltage readout")
-    print(" I   - enable current readout")
+    #print(" V   - enable voltage readout")
+    #print(" I   - enable current readout")
     print(" cal - enable calibration of current to voltage amplifier")
-    print(" w   - write data to serial shift register (debugging tool")
-    print(" re  - read back serial shift register data from Pro Micro (debugging tool)")
-    print(" g   - select current to voltage gain resistor number")
-    print(" gr  - select channel group to read out in current mode")
+    #--print(" w   - write data to serial shift register (debugging tool")
+    #print(" g   - select current to voltage gain resistor number")
+    #print(" gr  - select channel group to read out in current mode")
     print(" w   - write user provided number to serial shift register")
-    print(" ch  - select channel i for readout")
+    #print(" ch  - select channel i for readout")
     print(" d   - toggle debug variable")
     print(" gnd - ground all pads; optionally disable multiplexers")
     print(" s   - display current settings")
     print(" r   - reset hardware")
     print(" h   - help")
     print(" q   - quit")
+    #--print(" re  - read back serial shift register data from Pro Micro (debugging tool)")
 
     
 # main program

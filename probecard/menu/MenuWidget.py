@@ -7,8 +7,11 @@ from random import *
 class MenuFormLayout(QFormLayout):
     def __init__(self,entries,config):
         super(MenuFormLayout,self).__init__()
-        toTriple=lambda couples:[(a,b,"")for a,b in couples]
-        if len(choice(entries))==2: entries=toTriple(entries)
+        for i,entry in enumerate(entries):
+            if   len(entry)==2:
+                entries[i]=(entry[0],entry[1],"")
+            elif len(entry)!=3:
+                raise Exception("Menu entries not set properly")
         for label,key,default in entries:
             if key in config.getKeys():
                 lineEdit=config[key]
