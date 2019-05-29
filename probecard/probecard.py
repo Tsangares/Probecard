@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+
 # coding: utf-8
 """
 Contains a MainMenu, with all of the configuaration variables defined.
