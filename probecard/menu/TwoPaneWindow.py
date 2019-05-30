@@ -35,6 +35,10 @@ class TwoPaneWindow(StateWindow,RegionWindow):
         #-- RegionWindow Config --#
         self.buildRegionButtons(rightPane.layout())#Big setup function
 
+        #-- Logy toggle --#
+        logy=self.getToggle("logy")
+        leftPane.layout().addRow(QLabel("Logarithmic Y-Axis"),logy)
+
         #-- DEBUG --#
         btn=self.getToggle("debug")
         leftPane.layout().addRow(QLabel("Debug Mode"),btn)

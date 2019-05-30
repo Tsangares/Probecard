@@ -30,43 +30,64 @@ class SinglePixelDaq(BaseProbecardThread):
     def run(self):
         super(SinglePixelDaq,self).run()
         if not self.debugMode:
-            self.setVoltageMode(self.options['acomp'])
+            print("Setting controller to voltage mode.")
+            controllerDelay=1
+            self.setVoltageMode()
+            sleep(controllerDelay)
             self.controller.setGain(1) #highest resistance
+            print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
+            sleep(controllerDelay)
+            self.controller.setChannel(int(self.options['channel_number']))
         voltages=self.getVoltageRegions()
         compliance=float(self.options['kcomp'])
         for volt in voltages:
-            keithleyCurrent,agilentCurrents=self.getValues(volt)
-            for channel,current in agilentCurrents.items():
-                self.softwareCompliance(current,compliance)
-                self.emit(volt,current,channel,refresh=False)
+            keithleyCurrent,agilentCurrent=self.getValues(volt)
+            while agilentCurrent is None:
+                print("failed gain check")
+                keithleyCurrent,agilentCurrent=self.getValues(volt)
+                #This loop happens if the gain is wrong from checkGain()
+                
+            print("Agilent Current: ",agilentCurrent)
+            print("Keithley Current:", keithleyCurrent)
+            self.emit(volt,agilentCurrent,'agilent',refresh=False)
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
+            if self.softwareCompliance(keithleyCurrent,compliance) > 0.1:
+                print("Software compliance breached!")
+                break
+        self.keithley.powerDownPSU()
         self.log.emit("Finished data taking.")
         self.done.emit('done')
         self.quit()
                 
-    def checkGain(self,voltage):
-        if voltage > 13:
-            print("Gain is too high, dropping",values)
+    def checkGain(self,volt):
+        if volt > 13:
+            print("Gain is too high, dropping",volt)
             self.controller.dropGain()
+            return False
+        return True
 
     def getCurrents(self):
         values=self.readAgilent()
+        print("Agilent raw",values)
         currents={}
         for channel,voltage in values.items():
-            self.checkGain(voltage)
+            if not self.checkGain(voltage):
+                return None
             if not self.debugMode:
+                if int(channel[-1]) == 1:
+                    print("Agilent Voltage: ",voltage)
+                    print("Controller Resistance: ",self.controller.getResistance())
                 currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
             else:
                 currents['V%s'%channel[-1]] = voltage
-        return currents
+        return currents['V1']
     
     def getValues(self,volt):
         #Single Pixel
         self.setVoltage(volt)
-        sleep(.5)
         keithley=self.readKeithley()
         agilent=self.getCurrents()
-        return keithley,agilent
+        return -keithley,agilent
             
         
     

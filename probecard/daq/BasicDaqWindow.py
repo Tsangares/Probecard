@@ -35,6 +35,9 @@ class BasicDaqWindow(DetailWindow):
     def buildPlot(self):
         #Setup the figure with x,y label and title.
         #self.fig.invert_xaxis()
+        self.fig.legend()
+        self.fig.invert_xaxis()
+        if self.options['logy']: self.fig.semilogy()
         self.fig.set_xlabel("Voltage (V)")
         self.fig.set_ylabel("Current (A)")
         self.fig.set_title("Multichannel Current vs Voltage")
@@ -55,6 +58,7 @@ class BasicDaqWindow(DetailWindow):
             if v: print(self.volts,values)
             volts=self.volts[:len(values)]
             self.fig.plot(volts,values,label=chan)
+        self.buildPlot()
         self.draw()
 
     #Returns a dict of all the data in the plot
