@@ -45,7 +45,7 @@ class SinglePixelDaq(BaseProbecardThread):
         self.quit()
                 
     def checkGain(self,voltage):
-        if voltage > 13:
+        if voltage > 14:
             print("Gain is too high, dropping",values)
             self.controller.dropGain()
 
