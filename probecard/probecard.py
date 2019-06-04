@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+
 # coding: utf-8
 """
 Contains a MainMenu, with all of the configuaration variables defined.
@@ -41,7 +41,7 @@ class Gui(QApplication):
         self.window.saveSettings()
         options = self.window.getData() #Menu options
         self.window.close()
-        #print("Settings pulled from menu: ",options)
+        print("Settings pulled from menu: ",options)
         self.window=BasicDaqWindow(options) #QWindow
         if msg=='single':
             self.daq=SinglePixelDaq(options) #QThread
@@ -89,5 +89,6 @@ if __name__ == "__main__":
     gui=Gui()
     menuWindow=TwoPaneWindow(options,states)
     menuWindow.addStateWidget(states['multi'],(QLabel('Agilent Compliance (A)'),menuWindow.getLineEdit('acomp')))
+    menuWindow.addStateWidget(states['single'],(QLabel('Channel Number (N)'),menuWindow.getLineEdit('channel_number')))
     gui.addMenu(menuWindow)
 

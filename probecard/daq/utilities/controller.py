@@ -77,17 +77,17 @@ class Controller:
             self.writeSerialRegister(sr_data_mod)
 
     def dropGain(self):
-        if gain+1 > 5:
+        if self.gain+1 > 5:
             print("GAIN is too high but cannot drop any farther!")
         #Maybe a dangerous to just break if the gain is out of range?
-        self.setGain(gain+1)
+        self.setGain(self.gain+1)
         
     #Sets the gain resistor (See resistor class in controller_maps).
     def setGain(self,gain):
-        self.writeByte(self.OP_CODE['SET_GAIN'])
         if gain<1 or gain>5: raise Exception("Resistance out of range.")
-        self.gain=gain
+        self.writeByte(self.OP_CODE['SET_GAIN'])
         self.writeByte(gain)
+        self.gain=gain
         return self.getResistance()
         #Q: Dose this revert back to current/voltage mode?
 
@@ -102,6 +102,7 @@ class Controller:
         sr_data = MUX[chan] | PAD[chan]
         sr_data_mod = sr_data ^ self.INVERT
         self.writeSerialRegister(sr_data_mod)
+        print("Set channel to", chan)
         
     #Automatically switches to current mode!
     def setGroup(self,group):
@@ -115,6 +116,7 @@ class Controller:
         sr_data = sr_data | MUX[channels[0]]
         sr_data_mod = sr_data ^ self.INVERT
         self.writeSerialRegister(sr_data_mod)
+        print("Set group to", group)
 
     #This function only works on the most recent probcard skratch
     def isConnected(self):
@@ -122,9 +124,6 @@ class Controller:
 
     #Fundamental writing function
     def writeByte(self, data):
-        if issubclass(type(data),int):
-            print("Unecessairy casting in writeByte")
-        data=int(data)
         p_data = struct.pack('>B', data)
         self.connection.write(p_data)
         data_read = self.connection.read()
@@ -133,10 +132,12 @@ class Controller:
         return data_read
 
     def connect(port):
+        if 'COM' not in port:
+            port="COM%s"%port
         try:
             connection = serial.Serial(port,9600,timeout=5)
         except SerialException:
-            return -1
+            raise Exception("Failed to connect to controller. Check port")
         time.sleep(2)
         return connection
 

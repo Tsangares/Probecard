@@ -55,15 +55,18 @@ class BaseProbecardThread(QThread):
         self.agilent.setSamplingMode()
         self.agilent.setStandby(True) #Keep circuit open while not reading.
         self.agilent.setLong() #Integration time
-        self.agilent.setHoldTime(float(kwargs['holdTime']))
+        self.agilent.setSampleSize(1)
+        self.agilent.setHoldTime(float(self.options['holdTime']))
 
     #Get either voltage or current from agilent
     #Returns a dict of the form {'I1': .03,'V2': 1.3,'V3': .1,'I4': .55}
     #Where I1 means it is reading current on channel 1.
     def readAgilent(self):
         if not self.debugMode:
-            return self.agilent.read()
+            #return self.agilent.read()
+            return {k: v[0] for k,v in self.agilent.read().items()}
         else:
+            sleep(.05)
             return {'V%d'%i: random() for i in range(1,5)}
 
     #Get current from keithley
@@ -71,6 +74,7 @@ class BaseProbecardThread(QThread):
         if not self.debugMode:
             return self.keithley.get_current()
         else:
+            sleep(.05)
             return random()
 
     #Set voltage on powersupply
@@ -79,14 +83,14 @@ class BaseProbecardThread(QThread):
             self.keithley.set_output(volt)
         self.log.emit("Voltage set to %s"%volt)
 
-    def setCurrentMode(self):
+    def setCurrentMode(self,compliance):
         for i in range(1,5): #Enable all channels
-            self.agilent.setCurrent(i,0,float(15))
+            self.agilent.setVoltage(i,0,compliance)
         self.controller.setCurrentMode()
         
-    def setVoltageMode(self,compliance):
+    def setVoltageMode(self):
         for i in range(1,5): #Enable all channels
-            self.agilent.setVoltage(i,0,float(compliance))
+            self.agilent.setCurrent(i,0,float(15))
         self.controller.setVoltageMode()
 
     #Get a string representing the current mode
@@ -106,7 +110,7 @@ class BaseProbecardThread(QThread):
     def softwareCompliance(self,meas,compliance):
         if issubclass(type(meas),float): meas=[abs(meas)]
         currents=[abs(I) for I in meas]
-        breached=len([I for I in currents if I > abs(compliance)])
+        breached=len([I for I in currents if I >= abs(compliance*.95)])
         return float(breached)/len(currents)
 
     def emit(self,volt,value,chan,refresh=True):
