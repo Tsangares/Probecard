@@ -19,6 +19,11 @@ from PyQt5.QtWidgets import QLabel,QPushButton
 import json, time
 from threading import Thread
 from multiprocessing import Process
+import platform
+if 'darwin' in platform.system().lower():
+    import matplotlib
+    matplotlib.use('TkAgg') #Mac support
+
 import matplotlib.pyplot as plt
 
 import statistics as stat
