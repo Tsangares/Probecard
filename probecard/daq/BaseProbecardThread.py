@@ -83,11 +83,13 @@ class BaseProbecardThread(QThread):
             self.keithley.set_output(volt)
         self.log.emit("Voltage set to %s"%volt)
 
+    #Set current mode on the controller and ready to read current from the agilent
     def setCurrentMode(self,compliance):
         for i in range(1,5): #Enable all channels
             self.agilent.setVoltage(i,0,compliance)
         self.controller.setCurrentMode()
-        
+
+    #Set voltage mode on the controller and ready to read voltage from the agilent
     def setVoltageMode(self):
         for i in range(1,5): #Enable all channels
             self.agilent.setCurrent(i,0,float(15))

@@ -1,11 +1,12 @@
 
 ## About
 
-Probecard is built off the original Labmaster software, but using PyQt as a graphics manager.
+Probecard is built off the original Labmaster software, but using PyQt as a graphics manager. It contains many tools used in making daq windows with PyQt. 
 
 ## Quickstart
 
-This package is maintained as a pip package at https://pypi.org/project/probecard/.
+*Note:* Currently the pip package does not work for v1.4.
+This package is maintained as a pip package at https://pypi.org/project/probecardv1.4/.
 
 To install simply use pip:
 
@@ -43,11 +44,10 @@ A brief description of all the significant files in this repository.
  - `probecard` is a folder containing the source code.
    - `bin` is a directory containing a small bash command to run the software. This gets linked in setup.py to be a python executable (e.g. `python -m probecard`).
    - `daq` is a directory containing the code data collection and presentation.
-     - `MultiPixelDaq.py` takes between the probecard, powersupply and parameter analyzer in a `QThread` while displaying the data in a `DetailWindow`.
      - `utilities` is a directory containing email and excel helper scripts to finalize data output. It also contains the controller to talk to the integrated circuit on the probecard.
      - `windows` is a directory containing classes that describe a window to display the data collection while the software communcates with the peripherals
    - `menu` is a directory containing helpful classes to build a menu screen
-   - `GUI.py` is the main python script that loads the main-menu to start the daq windows.
+   - `probecard.py` is the main python script that loads the main-menu to start the daq windows.
 
 ## How do I update the git repo?
 

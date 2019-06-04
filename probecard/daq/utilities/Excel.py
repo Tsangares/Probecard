@@ -2,8 +2,6 @@ import xlsxwriter
 import matplotlib
 import time
 import platform
-import platform
-
 if 'darwin' in platform.system().lower():
     import matplotlib
     matplotlib.use('TkAgg') #Mac support
