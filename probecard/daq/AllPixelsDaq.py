@@ -23,6 +23,14 @@ class AllPixelsDaq(BaseProbecardThread):
         #Example of how to use debug mode
         if self.debugMode:
             print("In debug mode!")
+        if not self.debugMode:
+            print("Setting controller to ground mode.")
+            controllerDelay=1
+            self.setGroundMode()
+            sleep(controllerDelay)
+            self.controller.setGain(1) #highest resistance
+            print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
+            sleep(controllerDelay)
 
         #Get an array of voltages based on the regions section of the menu screen.
         voltages=self.getVoltageRegions()
@@ -33,7 +41,10 @@ class AllPixelsDaq(BaseProbecardThread):
 
         #This is how you loop through each voltage step
         for volt in voltages:
-            print("Currently at volt",volt)
+            print("Now at volt",volt)
+            keithleyCurrent=self.getValues(volt)
+            print("Keithley Current:", keithleyCurrent)
+            self.emit(volt,keithleyCurrent,'keithley',refresh=True)
 
             #Must account for the softwareCompliace!
             if self.softwareCompliance(keithleyCurrent,compliance) > 0.8:
