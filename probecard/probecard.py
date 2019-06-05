@@ -53,7 +53,11 @@ class Gui(QApplication):
             self.window = MultiPixelDaq(data)
             self.window.onFinish.connect(self.restore)
         elif msg=='all':
-            print(msg)
+            self.daq=AllPixelsDaq(options)
+            self.daq.newData.connect(self.window.addPoint)
+            self.daq.done.connect(self.window.finalize)
+            self.daq.log.connect(self.window.log)
+            self.daq.start()
         elif msg=='calib':
             print(msg)
         else:
