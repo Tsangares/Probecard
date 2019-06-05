@@ -63,3 +63,46 @@ class AllPixelsDaq(BaseProbecardThread):
 
         #Close the window.
         self.quit()
+
+        def checkGain(self,voltage):
+            if voltage > 14:
+                print("Gain is too high, dropping",values)
+                self.controller.dropGain()
+                return False
+            return True
+    
+        def getCurrents(self):
+            currents={}
+            for channel,voltage in values.items():
+                if not self.checkGain(voltage):
+                    return None
+                if not self.debugMode:
+                    if int(channel[-1]) == 1:
+                        print("Controller Resistance: ",self.controller.getResistance())
+                    currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
+                else:
+                        currents['V%s'%channel[-1]] = voltage
+                            return currents['V1']
+    
+        def getValues(self,volt):
+            self.setVoltage(volt)
+            keithley=self.readKeithley()
+            return -keithley
+
+
+
+
+if __name__=='__main__':
+    #Make a test
+    
+    #Create basic GUI
+    gui=QApplication(['test'])
+    daq=BasicDaqWindow()
+    gui.window=daq
+    
+    #Create a plotting thread
+    test=TestPlotting()
+    test.newPoint.connect(daq.addPoint)
+    test.start()
+    
+    gui.exec_()
