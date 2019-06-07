@@ -117,6 +117,7 @@ class StateWindow(Stateful):
         self.checkState(state)
         for widget in args:
             self.stateCache[state].insert(0,widget)
+        self.purgeState(self.getState())
 
     def addStateButton(self, boundState, text, action=None):
         btn=QPushButton(text)
