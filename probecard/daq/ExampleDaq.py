@@ -18,7 +18,7 @@ else:
 class ExampleDaq(BaseProbecardThread):
     def run(self):
         #Call the run function in BaseProbard Thread
-        super(SinglePixelDaq,self).run()
+        super(ExampleDaq,self).run()
 
         #Example of how to use debug mode
         if self.debugMode:

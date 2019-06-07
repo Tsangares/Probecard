@@ -69,6 +69,14 @@ class BaseProbecardThread(QThread):
             sleep(.05)
             return {'V%d'%i: random() for i in range(1,5)}
 
+    #Returns an array size 4 representing the values from the agilent
+    def getAgilentValues(self):
+        output=[None for i in range(4)] #Initilaize array with values
+        for key,value in self.readAgilent().items():
+            index=int(key[-1])-1 #Extract index from key
+            output[index]=value #Place value in array while keeping order
+        return output
+    
     #Get current from keithley
     def readKeithley(self):
         if not self.debugMode:
