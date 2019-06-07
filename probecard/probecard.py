@@ -97,5 +97,6 @@ if __name__ == "__main__":
     menuWindow=TwoPaneWindow(options,states)
     menuWindow.addStateWidget(states['multi'],(QLabel('Agilent Compliance (A)'),menuWindow.getLineEdit('acomp')))
     menuWindow.addStateWidget(states['single'],(QLabel('Channel Number (N)'),menuWindow.getLineEdit('channel_number')))
+    menuWindow.loadAutosave()
     gui.addMenu(menuWindow)
 
