@@ -1,1 +1,1 @@
-{"state": "Multi Pixels", "email": "wwyatt@ucsc.edu", "filename": "test", "kcomp": "1", "com": "11", "holdTime": "1", "region_0_start": "0", "region_0_steps": "5", "region_0_end": "-10", "logy": false, "debug": false, "acomp": "1", "channel_number": ""}
+{"state": "Multi Pixels", "email": "wwyatt@ucsc.edu", "filename": "test", "kcomp": "10", "com": "11", "holdTime": "1", "region_0_start": "0", "region_0_steps": "500", "region_0_end": "-10", "logy": false, "debug": true, "acomp": "10", "channel_number": ""}
