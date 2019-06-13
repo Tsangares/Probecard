@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QLabel,QPushButton,QApplication
 from random import random
+
+#Imports are lengthy because linking files is different when its a pip package.
 if __package__ in [None,""]:
     from utilities import writeExcel,attachFile,send_mail
     from windows import IV_Window,DetailWindow
@@ -13,53 +15,54 @@ else:
     from .BasicDaqWindow import BasicDaqWindow
     from time import sleep
 
-'''
-To implement a new daq:
- 1) Inherit BaseProbecardThread to get many commonly used functions.
- 2) Write a run function that will be the entry point to the thread
-     In the run function call the super's run function first then
-     implement your new startup configurations (like set the mode).
-     All options from the menu are stored in self.options['key']
- 3) Write an aquire function that is called after the run function.
-     In your aquire function, specify your experiment/collect data.
- TODO: 4) Unwritten data finalization!
- Warning: The hardest part is implementing the voltage regions.
-'''
-class SinglePixelDaq(BaseProbecardThread):
-
+class AllPixelsDaq(BaseProbecardThread):
     def run(self):
-        super(SinglePixelDaq,self).run()
+        #Call the run function in BaseProbard Thread
+        super(AllPixelsDaq,self).run()
+
+        #Example of how to use debug mode
+        if self.debugMode:
+            print("In debug mode!")
         if not self.debugMode:
-            print("Setting controller to voltage mode.")
+            print("Setting controller to ground mode.")
             controllerDelay=1
-            self.setVoltageMode()
+            self.setGroundMode()
             sleep(controllerDelay)
-            self.controller.setGain(1) #highest resistance
-            print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
-            sleep(controllerDelay)
-            self.controller.setChannel(int(self.options['channel_number']))
+            #self.controller.setGain(1) #highest resistance
+            #print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
+            #sleep(controllerDelay)
+
+        #Get an array of voltages based on the regions section of the menu screen.
         voltages=self.getVoltageRegions()
+
+        #Get the keithley compliacne from the menu options
+        #Note: All menu options are of type string
         compliance=float(self.options['kcomp'])
+
+        #This is how you loop through each voltage step
         for volt in voltages:
-            keithleyCurrent,agilentCurrent=self.getValues(volt)
-            while agilentCurrent is None:
-                print("failed gain check")
-                keithleyCurrent,agilentCurrent=self.getValues(volt)
-                #This loop happens if the gain is wrong from checkGain()
-                
-            print("Agilent Current: ",agilentCurrent)
+            print("Now at volt",volt)
+            keithleyCurrent=self.getValues(volt)
             print("Keithley Current:", keithleyCurrent)
-            self.emit(volt,agilentCurrent,'agilent',refresh=False)
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
-            if self.softwareCompliance(keithleyCurrent,compliance) > 0.1:
-                print("Software compliance breached!")
+            
+            #Must account for the softwareCompliace!
+            if self.softwareCompliance(keithleyCurrent,compliance) > 0.8:
+                print("At least 80% of pixels have reached compliance!")
                 break
+            
+        #Always powerdown the keithley when you are done
         if not self.debugMode:
             self.keithley.powerDownPSU()
+
+        #Log to the window
         self.log.emit("Finished data taking.")
+        
+        #Emit to other programs that the daq is done.
         self.done.emit('done')
+
+        #Close the window.
         self.quit()
-                
 
     def checkGain(self,voltage):
         if voltage > 14:
@@ -67,17 +70,14 @@ class SinglePixelDaq(BaseProbecardThread):
             self.controller.dropGain()
             return False
         return True
-
+    
     def getCurrents(self):
-        values=self.readAgilent()
-        print("Agilent raw",values)
         currents={}
         for channel,voltage in values.items():
             if not self.checkGain(voltage):
                 return None
             if not self.debugMode:
                 if int(channel[-1]) == 1:
-                    print("Agilent Voltage: ",voltage)
                     print("Controller Resistance: ",self.controller.getResistance())
                 currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
             else:
@@ -85,15 +85,13 @@ class SinglePixelDaq(BaseProbecardThread):
         return currents['V1']
     
     def getValues(self,volt):
-        #Single Pixel
         self.setVoltage(volt)
         keithley=self.readKeithley()
-        agilent=self.getCurrents()
-        return -keithley,agilent
-            
-        
-    
-        
+        return -keithley
+
+
+
+
 if __name__=='__main__':
     #Make a test
     
@@ -101,7 +99,7 @@ if __name__=='__main__':
     gui=QApplication(['test'])
     daq=BasicDaqWindow()
     gui.window=daq
-
+    
     #Create a plotting thread
     test=TestPlotting()
     test.newPoint.connect(daq.addPoint)

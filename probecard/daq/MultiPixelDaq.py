@@ -1,359 +1,62 @@
-"""
-This is the beast of the multi-channel reading experiment.
-Use DEBUG & KEITHLEY to enable and disable testing & debug
-When DEBUG is true, no attempt will be made to access visa/gpib devices.
-But to be sure ALWAYS disable KEITHLEY when testing.
-Dont kill someone by applying a voltage by accident!
-
-When KEITHLEY=False, no voltage will be applied,
-but currents from the agilent will be read.
- - WCW 181127
-"""
-
-from queue import Queue
-from numpy import linspace
-from random import random
-from io import BytesIO
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QLabel,QPushButton
-import json, time
-from threading import Thread
-from multiprocessing import Process
-import matplotlib.pyplot as plt
-
-import statistics as stat
-import os
-
-from  contraption.PowerSupply import *
-from  contraption.Agilent import Agilent4155C
-from  contraption.Arduino import Max
-
-#from .utilities.controller_maps import Resistor
-from .utilities import writeExcel,attachFile,send_mail
-from .windows import IV_Window
-
-excel_folder = os.path.expanduser("~/Desktop/probecard_output/excel/")
-json_folder = os.path.expanduser("~/Desktop/probecard_output/json/")
-if not os.path.exists(excel_folder):
-    os.makedirs(excel_folder)
-if not os.path.exists(json_folder):
-    os.makedirs(json_folder)
+from PyQt5.QtWidgets import QLabel,QPushButton,QApplication
+from random import random
+from time import sleep
     
-def getChan(chan):
-    map={
-        25:'3' , 24:'2' , 23:'BB', 22:'AA', 21:'Z' ,
-        20:'C' , 19:'A' , 18:'1' , 17:'24', 16:'22',
-        15:'K' , 14:'B' , 13:'12', 12:'23', 11:'S' ,
-        10:'10',  9:'11',  8:'13',  7:'14',  6:'15',
-        5:'L' ,   4:'M' ,  3:'N' ,  2:'P' ,  1:'R' ,
-        99: 'pass-empty', 26: 'pass-guard',
-    }
-    map2={
-        25:'(1,5)' , 24:'(2,5)' , 23:'(3,5)', 22:'(4,5)', 21:'(5,5)' ,
-        20:'(1,4)' , 19:'(2,4)' , 18:'(3,4)', 17:'(4,4)', 16:'(5,4)',
-        15:'(1,3)' , 14:'(2,3)' , 13:'(3,3)', 12:'(4,3)', 11:'(5,3)' ,
-        10:'(1,2)' ,  9:'(2,2)',   8:'(3,2)',  7:'(4,2)',  6:'(5,2)',
-         5:'(1,1)' ,  4:'(2,1)' ,  3:'(3,1)',  2:'(4,1)' ,  1:'(5,1)' ,
-        99: 'pass-empty', 26: 'pass-guard',
-    }
-    try:
-        return 'Ch%s'%int(map[chan])
-    except ValueError:
-        return map[chan]
-    
-#All of the main code is put into a seperate thread to allow
-#The UI to not freeze and respond to button clicking like Force Shutdown.
-class DaqProtocol(QThread):
-    newSample = pyqtSignal(tuple)
-    onLog = pyqtSignal(tuple)
-    onFinish = pyqtSignal(dict)
-    onClearPlot = pyqtSignal(str)
-    onCalibrationDone = pyqtSignal(str)
-    onEmergencyStop = pyqtSignal(str)
+#Imports are lengthy because linking files is different when its a pip package.
+if __package__ in [None,""]:
+    from utilities import writeExcel,attachFile,send_mail,reverse_channel_map
+    from windows import IV_Window,DetailWindow
+    from BaseProbecardThread import BaseProbecardThread
+    from BasicDaqWindow import BasicDaqWindow
+else:
+    from .utilities import writeExcel,attachFile,send_mail,reverse_channel_map
+    from .windows import IV_Window,DetailWindow
+    from .BaseProbecardThread import BaseProbecardThread
+    from .BasicDaqWindow import BasicDaqWindow
 
-    def __init__(self,options,widget=None):
-        super(DaqProtocol,self).__init__(widget)
-        self.options=options
-        self.calibration=None
-        self.calibrated=False
-        self.emergencyStop=False
-        self.onEmergencyStop.connect(self.initEmergencyStop)
-        self.DEBUG=True
-        self.KEITHLEY=False
-        self.ARDUINO=False
 
-                                     
-    def initEmergencyStop(self,msg=None):
-        print("Emergency Stop Initialized")
-        self.log("Emergency Stop Initialized")
-        self.emergencyStop=True
-        
-    def log(self,*args):
-        self.onLog.emit(args)
-        
+class MultiPixelDaq(BaseProbecardThread):
+    useDelays=False
+    delayBetweenGroups=.5
+
     def run(self):
-        if self.calibrated:
-            self.collectData(self.options)
-            return
-        options=self.options
-        #Connect to instruments
-        port = 0
-        self.arduino=None
-        if self.options['debug'] == False:
-            #DEBUG IS OFF (DANGEROUS)
-            self.DEBUG=False
-            self.KEITHLEY=True
-            self.ARDUINO=True
-        elif self.options['debug'] == True:
-            self.DEBUG=True
-            self.KEITHLEY=False
-            self.ARDUINO=False
+        super(MultiPixelDaq,self).run()
+        if self.debugMode:
+            print("In debug mode!")
+        voltages=self.getVoltageRegions()
+        keithleyCompliance=float(self.options['kcomp'])
+        agilentCompliance=float(self.options['acomp'])
+        for volt in voltages:
+            print("Currently at volt",volt)
+            currents=self.getAllChannels() #a dict
+            print(currents)
+            keithleyCurrent=self.readKeithley()
+            breached=self.softwareCompliance(currents,agilentCompliance)
+            if self.softwareCompliance(currents,agilentCompliance) > 0.8:
+                print("More than 80% of pixels have reached compliance!")
+                break
+            for chan,current in currents.items():
+                print(chan,current)
+                if current is None: continue
+                self.emit(volt,current,str(chan),refresh=False)
+            self.emit(volt,keithleyCurrent,'keithley',refresh=True)
+        if not self.debugMode:
+            self.keithley.powerDownPSU()
+        self.log.emit("Finished data taking.")
+        self.done.emit('done')
+        self.quit()
 
-        if not self.DEBUG:
-            if self.KEITHLEY:
-                self.keithley = Keithley2657a()
-                self.configureKeithley(options)
-            self.agilent = Agilent4155C(reset=True)
-            self.configureAglient(options)
-            if self.ARDUINO:
-                self.arduino = Max("COM%s"%options['com'])
-        self.log("Starting data collection")
-        
-        self.log("STARTING CALIBRATION")
-        self.calibration=self.aquireLoop(0,None,None,repeat=3)[0]
-        self.onClearPlot.emit("clear")
-        self.log("ENDING CALIBRATION")
-        
-        self.calibrated=True
-        self.onCalibrationDone.emit('done')
-        #calculate leakage
-            
-    def getPoint(self):
-        return [random(),random(),random(),random()]
-
-    def configureAglient(self, kwargs):
-        self.agilent.setSamplingMode()
-        self.agilent.setStandby(True)
-        self.agilent.setLong()
-        #self.agilent.setShort()
-        #if int(kwargs['nChan']) < 0 or int(kwargs['nChan']) > 4:
-        #    raise Exception("ERROR: Please set number of channels between 0 and 4!")
-        #for i in range(1,int(kwargs['nChan'])+1):
-        for i in range(1,5): #Enable all channels
-            self.agilent.setCurrent(i,0,float(kwargs['acomp']))
-        self.agilent.setMedium()
-        self.agilent.setHoldTime(float(kwargs['holdTime']))
-
-    def configureKeithley(self, kwargs):
-        #Setting the keithley compliance
-        #TODO: Check to see if casting caused errors.
-        self.keithley.configure_measurement(1, 0, float(kwargs['kcomp']))
-
-    def getMeasurement(self,samples,duration,channels=None,index=None):
-        if self.DEBUG:
-            time.sleep(.2)
-            return {"chan%d"%(i+4*index): 100*random()*i**(i*i) for i in range(1,5)}
-        agilentData=self.agilent.read(samples,duration)
-        agilent={ getChan(channels[int(key[-1])-1]): value[-1] for key,value in agilentData.items() }
-        
-        if self.KEITHLEY and index is not None:
-            keithley=self.keithley.get_current() #float
-            agilent['keithley%d'%index]=keithley
-        return agilent
-
-    #collectData    
-    def collectData(self, kwargs):
-        self.log("Started data collection.".upper())
-        print("Started data collection.")
-        delay=.1
-        allRegionVariables=[(key, val) for key,val in kwargs.items() if 'region' in key]
-        regions=[]
-        for datum in allRegionVariables:
-            key=datum[0]
-            val=datum[1]
-            for i in range(len(allRegionVariables)):
-                if str(i) in key:
-                    if len(regions) <= i:
-                        for j in range(i-len(regions)+1):
-                            regions.append({})
-                    regions[i][key[len('region_0_'):]]=val
-                    
-        measurements=[]
-        for i,region in enumerate(regions):
-            startVolt=float(region['start'])
-            endVolt=float(region['end'])
-            steps=int(region['steps'])+1
-            step=(endVolt-startVolt)/float(steps)
-            #voltages=list(linspace(startVolt,endVolt,steps+1))
-            self.log("Region %d initialized with %d steps between %04d and %04g V."%(i,steps,startVolt,endVolt))
-            measured=self.aquireLoop(startVolt,step,endVolt,1)
-            measurements+=measured
-        measurements=sorted(measurements,key=lambda p: p['Voltage'],reverse=True)
-        output=self.repeatedListToDict(measurements)
-        if not self.DEBUG and self.KEITHLEY: self.keithley.powerDownPSU()
-        #Possibly calculate leakage later?
-        if self.emergencyStop: print("Emergency Stop Successful.")
-        self.onFinish.emit(output)
-        
-    #Convert from a repeated list of measurements to a dictionary of channels
-    def repeatedListToDict(self,measurements):
-        output={}
-        for meas in measurements:
-            for channel,value in meas.items():
-                try:
-                    output[channel]
-                except KeyError:
-                    output[channel]=[]
-                output[channel].append(value)
-        return output
-
-    #Get resistance from the GUI options or from file.
-    def getResistance(self,chan=None):
-        #Currently only supporting getting from GUI options
-        #The input variable chan here will corespond to the channel
-        #Use lookup table to find this resistance.
-        #return float(Resistor.reverseLabels[self.options['resistance']])
-        return float(1)
-    
-    def checkCompliance(self,meas):
-        comp=float(self.options['acomp'])
-        current=abs(comp/self.getResistance() * .98)
-        breached=0
-        for key,val in meas.items():
-            if abs(val) > current: breached += 1
-        proportion=float(breached) / float(len(meas))
-        if proportion > .25:
-            print("Currently %.02f%% sensors have reaches complaince."%(proportion*100))
-        return proportion > .75
-    
-    def saveDataToFile(self, data):
-        filename=self.options['filename']
-        with open('%s/%s.json'%(json_folder,filename) ,'w+') as f:
-            f.write(json.dumps(data))
-
-    #This is a recursive loop that gathers data & calls itself at the next voltage.
-    def aquireLoop(self,volt,step,limit,repeat=1,delay=.1):
-        #Note, if limit is none, then we are calibrating
-
-        ### Logistics and Logging ###
-        if self.emergencyStop or (limit is not None and abs(volt) >= abs(limit)):
-            self.log("Last voltage measured, ending data collection.")
-            return list()
-
-        if limit is not None: self.log("Step is %.02e; while limit is %.02e; currently at %.02e"%(step,limit,volt))
-
-        #Only turn on the keithley if we are absolutley certain we should:
-        if not self.DEBUG and self.KEITHLEY and limit is not None:
-            self.log("Setting keithley to %.02e"%volt)
-            self.keithley.set_output(volt)
-
-        #Repeated measurements is used for averaging.
-        if repeat > 1 : self.log("Taking %d measurements on each mux to average."%repeat)
-        
-        ### Data Taking ###
-        meas = {'Voltage': volt}
-        time.sleep(float(delay)) #Time between measurements delay
-        #for mux in range(0,7):
-        for mux in range(0,7): #Mux stands to the range of connected inputs from the multiplexers
-            if self.emergencyStop: return []
-            if self.ARDUINO and not self.DEBUG: self.arduino.getGroup(mux)
-            channels=Max.reverse_map[mux]
-            self.log("Set mux to %d, reading channels: %s"%(mux,channels))
-            if not self.DEBUG: time.sleep(1) #Delay for multiplexers to settle
-            cache={} #Cache is the measurement for a specific mux
-            for i in range(repeat): #This supports repeated measurements for averaging measurements
-                if i < repeat and repeat is not 1: self.log("On sample %d out of %d. %2d%%"%(i,repeat,100.0*i/repeat))
-                thisMeasurements=self.getMeasurement(1,channels,index=mux)
-                for channel,value in thisMeasurements.items():
-                    if "keithley" in channel:
-                        amps=value
-                    else:
-                        ## Convert keithley voltage to current ##
-                        amps=value/self.getResistance(channel)
-                        
-
-                        ## Account for noise ##
-                        if self.calibration is not None:
-                            amps -= self.calibration[channel]
-                    try:
-                        cache[channel].append(amps)
-                    except KeyError:
-                        cache[channel]=[]
-                        cache[channel].append(amps)
-                    self.log("Chan %s reads %.03e A"%(channel,amps))
-            cache={key: stat.mean(vals) for key,vals in cache.items()}
-            print((volt,cache))
-            if repeat is 1 and limit is not None: self.newSample.emit((volt,cache))
-            #Appends cache to measurements
-            meas={**meas, **cache}
-        ## Finalize ##
-        self.saveDataToFile(meas)
-        if limit is None: return [meas] #limit is None implies this is calibration mode
-        elif abs(limit-volt)/step > 10 and self.checkCompliance(meas):
-            print("Compliance Breached! Taking 8 more measurements.")
-            newLimit=volt+step*9
-            return self.aquireLoop(volt+step,step,volt+step*9,repeat,delay).append(meas)
-        else:
-            newLimit=limit
-            print("Acquisition cycle on %04d V ended. Makeing volt step of %.02f"%(int(volt),step))
-        return self.aquireLoop(volt+step,step,newLimit,repeat,delay)+[meas]
-
-    #returns the second item in this weird format.
-    def skipMeasurements(result, skip):
-        output={}
-        for key in result:
-            currents=result[key][skip:]
-            if len(currents) == 1:
-                output[key]=currents[0]
-            else:
-                output[key]=currents
-        return output
-
-
-#Just a window now.
-class MultiPixelDaq(IV_Window):
-    onFinish = pyqtSignal(str)
-    def __init__(self, options):
-        super(MultiPixelDaq,self).__init__()
-        #Build number of plots
-        #for i in range(1,5):
-        #    self.figs.append(self.figure.add_subplot(2,2,i))
-        self.fig=self.figure.add_subplot(1,1,1)
-        self.show()
-        self.options=options
-        #Starts the protocol thread
-        self.thread=DaqProtocol(options,self.mainWidget)
-        self.thread.newSample.connect(self.addPoint)
-        self.thread.onLog.connect(self.log)
-        self.thread.onClearPlot.connect(self.clearPlot)
-        self.thread.onFinish.connect(self.finalizeData)
-        self.thread.onCalibrationDone.connect(self.afterCalibration)
-        self.thread.start()
-        
-    def afterCalibration(self,msg=None):
-        start=QPushButton("Start")
-        self.menuLayout.insertRow(0,start)
-        start.clicked.connect(self.startExperiment)
-        
-    def startExperiment(self,msg=None):
-        shutdown=QPushButton("Force Shutdown")
-        shutdown.clicked.connect(lambda: self.thread.onEmergencyStop.emit('stop'))
-        self.menuLayout.removeRow(0)
-        self.menuLayout.insertRow(0,shutdown)
-        self.thread.start()
-        
-    def finalizeData(self,data):
-        files=[]
-        filename=writeExcel(data,self.options['filename'],excel_folder=excel_folder)
-        print("Wrote excel.")
-        imgdata = BytesIO()
-        self.figure.savefig(imgdata, format='png')
-        imgdata.seek(0)
-        files.append((imgdata.getbuffer(), "log"))
-        print("Saved plot.")
-        send_mail(filename,self.options['email'],files=files)
-        print("Sent mail.")
-        self.onFinish.emit('done')
-        self.close()
-
-
+    def getAllChannels(self):
+        #Hard coding 26 channels here!
+        values={}
+        for group in range(7):
+            channelNumbers=list(reverse_channel_map[group])
+            if not self.debugMode: self.controller.setGroup(i)
+            self.log.emit("Selecting group %d with %s channels"%(group,channelNumbers))
+            if self.useDelays: time.sleep(self.delayBetweenGroups)
+            currents=self.getAgilentValues() #Array of 4
+            for value,chan in zip(currents,channelNumbers):
+                if chan==99: continue
+                values[chan]=value
+        return values

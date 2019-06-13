@@ -50,10 +50,17 @@ class Gui(QApplication):
             self.daq.log.connect(self.window.log)
             self.daq.start()
         elif msg == 'multi':
-            self.window = MultiPixelDaq(data)
-            self.window.onFinish.connect(self.restore)
+            self.daq = MultiPixelDaq(options)
+            self.daq.newData.connect(self.window.addPoint)
+            self.daq.done.connect(self.window.finalize)
+            self.daq.log.connect(self.window.log)
+            self.daq.start()
         elif msg=='all':
-            print(msg)
+            self.daq=AllPixelsDaq(options)
+            self.daq.newData.connect(self.window.addPoint)
+            self.daq.done.connect(self.window.finalize)
+            self.daq.log.connect(self.window.log)
+            self.daq.start()
         elif msg=='calib':
             print(msg)
         else:
@@ -90,5 +97,6 @@ if __name__ == "__main__":
     menuWindow=TwoPaneWindow(options,states)
     menuWindow.addStateWidget(states['multi'],(QLabel('Agilent Compliance (A)'),menuWindow.getLineEdit('acomp')))
     menuWindow.addStateWidget(states['single'],(QLabel('Channel Number (N)'),menuWindow.getLineEdit('channel_number')))
+    menuWindow.loadAutosave()
     gui.addMenu(menuWindow)
 

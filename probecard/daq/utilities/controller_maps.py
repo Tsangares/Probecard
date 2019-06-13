@@ -1,9 +1,4 @@
 import array
-
-    
-
-    
-
     
 # channel map for 32 bit serial shift register
 # to read out pad n, PAD[n] sets correct ssr bit high to switch channel n from ground to readout

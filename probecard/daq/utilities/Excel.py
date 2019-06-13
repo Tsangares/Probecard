@@ -2,11 +2,14 @@ import xlsxwriter
 import matplotlib
 import time
 import platform
+if 'darwin' in platform.system().lower():
+    import matplotlib
+    matplotlib.use('TkAgg') #Mac support
+matplotlib.use('TkAgg') #Mac support
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
 from datetime import datetime
 import os
-matplotlib.use("TkAgg")
 
 OUTPUT_FOLDER="../output/excel/"
 #Simply takes the data & writes it to an excel file.

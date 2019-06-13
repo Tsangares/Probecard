@@ -66,13 +66,23 @@ class BaseProbecardThread(QThread):
             #return self.agilent.read()
             return {k: v[0] for k,v in self.agilent.read().items()}
         else:
+            sleep(.05)
             return {'V%d'%i: random() for i in range(1,5)}
 
+    #Returns an array size 4 representing the values from the agilent
+    def getAgilentValues(self):
+        output=[None for i in range(4)] #Initilaize array with values
+        for key,value in self.readAgilent().items():
+            index=int(key[-1])-1 #Extract index from key
+            output[index]=value #Place value in array while keeping order
+        return output
+    
     #Get current from keithley
     def readKeithley(self):
         if not self.debugMode:
             return self.keithley.get_current()
         else:
+            sleep(.05)
             return random()
 
     #Set voltage on powersupply
@@ -81,11 +91,13 @@ class BaseProbecardThread(QThread):
             self.keithley.set_output(volt)
         self.log.emit("Voltage set to %s"%volt)
 
+    #Set current mode on the controller and ready to read current from the agilent
     def setCurrentMode(self,compliance):
         for i in range(1,5): #Enable all channels
             self.agilent.setVoltage(i,0,compliance)
         self.controller.setCurrentMode()
-        
+
+    #Set voltage mode on the controller and ready to read voltage from the agilent
     def setVoltageMode(self):
         for i in range(1,5): #Enable all channels
             self.agilent.setCurrent(i,0,float(15))

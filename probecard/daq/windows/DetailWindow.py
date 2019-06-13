@@ -1,5 +1,11 @@
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+
+import platform
+if 'darwin' in platform.system().lower():
+    import matplotlib
+    matplotlib.use('TkAgg') #Mac support
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import time
