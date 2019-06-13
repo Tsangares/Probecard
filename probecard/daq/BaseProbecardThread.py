@@ -54,6 +54,7 @@ class BaseProbecardThread(QThread):
 
     def initAgilent(self,holdTime):
         self.agilent=Agilent4155C(reset=True)
+        self.agilent.inst.timeout=3000
         self.agilent.setSamplingMode()
         self.agilent.setStandby(True) #Keep circuit open while not reading.
         self.agilent.setLong() #Integration time
@@ -72,9 +73,11 @@ class BaseProbecardThread(QThread):
             return {'V%d'%i: random() for i in range(1,5)}
 
     #Returns an array size 4 representing the values from the agilent
-    def getAgilentValues(self):
+    def getAgilentValues(self,verbose=False):
         output=[None for i in range(4)] #Initilaize array with values
-        for key,value in self.readAgilent().items():
+        values=self.readAgilent()
+        if verbose: print(values)
+        for key,value in values.items():
             index=int(key[-1])-1 #Extract index from key
             output[index]=value #Place value in array while keeping order
         return output

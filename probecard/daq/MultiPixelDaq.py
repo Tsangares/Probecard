@@ -27,38 +27,38 @@ class MultiPixelDaq(BaseProbecardThread):
         voltages=self.getVoltageRegions()
         keithleyCompliance=float(self.options['kcomp'])
         agilentCompliance=float(self.options['acomp'])
+        self.setCurrentMode(agilentCompliance)
         for volt in voltages:
             print("Currently at volt",volt)
-            currents=self.getAllChannels() #a dict
+            currents=self.getAllChannels(volt) #a dict
+            list_currents=[c[1] for c in currents.items()]
             print(currents)
-            keithleyCurrent=self.readKeithley()
-            breached=self.softwareCompliance(currents,agilentCompliance)
-            if self.softwareCompliance(currents,agilentCompliance) > 0.8:
+            keithleyCurrent=-self.readKeithley()
+            self.emit(volt,keithleyCurrent,'keithley',refresh=True)
+            breached=self.softwareCompliance(list_currents,agilentCompliance)
+            if breached > 0.8:
                 print("More than 80% of pixels have reached compliance!")
                 break
-            for chan,current in currents.items():
-                print(chan,current)
-                if current is None: continue
-                self.emit(volt,current,str(chan),refresh=False)
-            self.emit(volt,keithleyCurrent,'keithley',refresh=True)
         if not self.debugMode:
             self.keithley.powerDownPSU()
         self.log.emit("Finished data taking.")
         self.done.emit('done')
         self.quit()
 
-    def getAllChannels(self):
+    def getAllChannels(self,volt):
         #Hard coding 26 channels here!
+        self.setVoltage(volt)
         values={}
         for group in range(7):
-            channelNumbers=list(reverse_channel_map[group])
+            smu2,smu1,smu3,smu4=reverse_channel_map[group]
             if not self.debugMode: self.controller.setGroup(group)
-            self.log.emit("Selecting group %d with %s channels"%(group,channelNumbers))
+            self.log.emit("Selecting group %d"%(group))
             if self.useDelays: time.sleep(self.delayBetweenGroups)
-            
             currents=self.getAgilentValues() #Array of 4
-            for value,chan in zip(currents,channelNumbers):
+            print(currents)
+            for value,chan in zip(currents,[smu1,smu2,smu3,smu4]):
                 if chan==99: continue
                 values[chan]=value
-        print(values)
+                print("Emitting",volt,value,str(chan))
+                self.emit(volt,value,str(chan),refresh=True)
         return values
