@@ -28,9 +28,9 @@ class AllPixelsDaq(BaseProbecardThread):
             controllerDelay=1
             self.setGroundMode()
             sleep(controllerDelay)
-            self.controller.setGain(1) #highest resistance
-            print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
-            sleep(controllerDelay)
+            #self.controller.setGain(1) #highest resistance
+            #print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
+            #sleep(controllerDelay)
 
         #Get an array of voltages based on the regions section of the menu screen.
         voltages=self.getVoltageRegions()
@@ -45,10 +45,10 @@ class AllPixelsDaq(BaseProbecardThread):
             keithleyCurrent=self.getValues(volt)
             print("Keithley Current:", keithleyCurrent)
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
-
+            
             #Must account for the softwareCompliace!
             if self.softwareCompliance(keithleyCurrent,compliance) > 0.8:
-                print("80% of pixels have reached compliance!")
+                print("At least 80% of pixels have reached compliance!")
                 break
             
         #Always powerdown the keithley when you are done
@@ -64,30 +64,30 @@ class AllPixelsDaq(BaseProbecardThread):
         #Close the window.
         self.quit()
 
-        def checkGain(self,voltage):
-            if voltage > 14:
-                print("Gain is too high, dropping",values)
-                self.controller.dropGain()
-                return False
-            return True
+    def checkGain(self,voltage):
+        if voltage > 14:
+            print("Gain is too high, dropping",values)
+            self.controller.dropGain()
+            return False
+        return True
     
-        def getCurrents(self):
-            currents={}
-            for channel,voltage in values.items():
-                if not self.checkGain(voltage):
-                    return None
-                if not self.debugMode:
-                    if int(channel[-1]) == 1:
-                        print("Controller Resistance: ",self.controller.getResistance())
-                    currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
-                else:
-                        currents['V%s'%channel[-1]] = voltage
-                            return currents['V1']
+    def getCurrents(self):
+        currents={}
+        for channel,voltage in values.items():
+            if not self.checkGain(voltage):
+                return None
+            if not self.debugMode:
+                if int(channel[-1]) == 1:
+                    print("Controller Resistance: ",self.controller.getResistance())
+                currents['V%s'%channel[-1]] = voltage/self.controller.getResistance()
+            else:
+                currents['V%s'%channel[-1]] = voltage
+        return currents['V1']
     
-        def getValues(self,volt):
-            self.setVoltage(volt)
-            keithley=self.readKeithley()
-            return -keithley
+    def getValues(self,volt):
+        self.setVoltage(volt)
+        keithley=self.readKeithley()
+        return -keithley
 
 
 
