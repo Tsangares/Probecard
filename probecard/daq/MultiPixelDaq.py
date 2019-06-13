@@ -55,6 +55,7 @@ class MultiPixelDaq(BaseProbecardThread):
             if not self.debugMode: self.controller.setGroup(i)
             self.log.emit("Selecting group %d with %s channels"%(group,channelNumbers))
             if self.useDelays: time.sleep(self.delayBetweenGroups)
+            
             currents=self.getAgilentValues() #Array of 4
             for value,chan in zip(currents,channelNumbers):
                 if chan==99: continue

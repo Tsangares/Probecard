@@ -83,11 +83,11 @@ reverse_channel_map = {
     # in order.  all channels are routed through four 8:1 multiplexers with four
     # outputs routed to the above output connectors.  All four multiplexers are controlled
     # by one three bit address.
-    0: (3, 16, 26, 2),
-    1: (1, 6, 18, 4),
-    2: (21, 12, 24, 15),
-    3: (11, 8, 9, 5),
-    4: (22, 13, 20, 25),
-    5: (17, 7, 10, 14),
-    6: (23, 99, 99, 19)
+    0: (16, 3, 26, 2),
+    1: (6, 1, 18, 4),
+    2: (12, 21, 24, 15),
+    3: (8, 11, 9, 5),
+    4: (13, 22, 20, 25),
+    5: (7, 17, 10, 14),
+    6: (99, 23, 99, 19)
 }
