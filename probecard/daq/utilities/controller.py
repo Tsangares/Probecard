@@ -143,9 +143,7 @@ class Controller:
 
     def writeSerialRegister(self,sr_data_mod):
         self.writeByte(self.OP_CODE['WRITE_SR'])
-        if issubclass(type(sr_data_mod),int):
-            print("Unecessairy casting in writeSerialRegister")
-        a = int(sr_data_mod)
+        a = sr_data_mod
         # convert integer into packed binary.  
         # ">" indicateds "big-endian" bit order
         # "i" indicates four byte integer

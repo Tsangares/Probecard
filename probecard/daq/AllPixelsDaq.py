@@ -29,7 +29,7 @@ class AllPixelsDaq(BaseProbecardThread):
         if not self.debugMode:
             print("Setting controller to ground mode.")
             controllerDelay=1
-            self.setGroundMode()
+            self.controller.setGroundMode()
             sleep(controllerDelay)
             #self.controller.setGain(1) #highest resistance
             #print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())

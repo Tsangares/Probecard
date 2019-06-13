@@ -52,11 +52,12 @@ class MultiPixelDaq(BaseProbecardThread):
         values={}
         for group in range(7):
             channelNumbers=list(reverse_channel_map[group])
-            if not self.debugMode: self.controller.setGroup(i)
+            if not self.debugMode: self.controller.setGroup(group)
             self.log.emit("Selecting group %d with %s channels"%(group,channelNumbers))
             if self.useDelays: time.sleep(self.delayBetweenGroups)
             currents=self.getAgilentValues() #Array of 4
             for value,chan in zip(currents,channelNumbers):
                 if chan==99: continue
                 values[chan]=value
+        print(values)
         return values
