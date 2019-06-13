@@ -27,11 +27,12 @@ class BaseProbecardThread(QThread):
         'readCurrent': 'current',
         'readVoltage': 'volt',
     }
-    def __init__(self,options):
+    def __init__(self,options,enableAgilent=True):
         super(BaseProbecardThread,self).__init__()
         self.options=options
         self.softCompliance=None #Software compliance
         self.debugMode=options['debug']
+        self.enableAgilent=enableAgilent
         
     def run(self):
         options=self.options
@@ -43,7 +44,8 @@ class BaseProbecardThread(QThread):
         else:
             self.initKeithley(compliance=options['kcomp'])
             self.softCompliance=options['kcomp']
-            self.initAgilent(options['holdTime'])
+            if self.enableAgilent:
+                self.initAgilent(options['holdTime'])
             self.controller=Controller(options['com'])
 
     def initKeithley(self,compliance):
