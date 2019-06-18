@@ -22,12 +22,13 @@ class MultiPixelDaq(BaseProbecardThread):
 
     def run(self):
         super(MultiPixelDaq,self).run()
-        if self.debugMode:
-            print("In debug mode!")
+        
         voltages=self.getVoltageRegions()
         keithleyCompliance=float(self.options['kcomp'])
         agilentCompliance=float(self.options['acomp'])
-        self.setCurrentMode(agilentCompliance)
+        if not self.debugMode:
+            self.setCurrentMode(agilentCompliance)
+
         for volt in voltages:
             print("Currently at volt",volt)
             currents=self.getAllChannels(volt) #a dict
@@ -39,8 +40,11 @@ class MultiPixelDaq(BaseProbecardThread):
             if breached > 0.8:
                 print("More than 80% of pixels have reached compliance!")
                 break
+            if self.forceStop:
+                print("Force quitting")
+                break
         if not self.debugMode:
-            self.keithley.powerDownPSU()
+            self.keithley.powerDownPSU(self.rampRate)
         self.log.emit("Finished data taking.")
         self.done.emit('done')
         self.quit()

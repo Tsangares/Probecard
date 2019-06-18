@@ -23,6 +23,7 @@ class BaseProbecardThread(QThread):
     newData=pyqtSignal(float,float,str,bool)
     log=pyqtSignal(str)
     done=pyqtSignal(str)
+    rampRate=2.0
     agilentModes={
         'readCurrent': 'current',
         'readVoltage': 'volt',
@@ -33,6 +34,7 @@ class BaseProbecardThread(QThread):
         self.softCompliance=None #Software compliance
         self.debugMode=options['debug']
         self.enableAgilent=enableAgilent
+        self.forceStop=False
         
     def run(self):
         options=self.options
@@ -48,6 +50,9 @@ class BaseProbecardThread(QThread):
                 self.initAgilent(options['holdTime'])
             self.controller=Controller(options['com'])
 
+    def stop(self):
+        self.forceStop=True
+        
     def initKeithley(self,compliance):
         self.keithley=Keithley2657a()
         self.keithley.configure_measurement(1, 0, float(compliance))
@@ -69,7 +74,7 @@ class BaseProbecardThread(QThread):
             #return self.agilent.read()
             return {k: v[0] for k,v in self.agilent.read().items()}
         else:
-            sleep(.05)
+            sleep(.2)
             return {'V%d'%i: random() for i in range(1,5)}
 
     #Returns an array size 4 representing the values from the agilent
@@ -87,7 +92,7 @@ class BaseProbecardThread(QThread):
         if not self.debugMode:
             return self.keithley.get_current()
         else:
-            sleep(.05)
+            sleep(.2)
             return random()
 
     #Set voltage on powersupply

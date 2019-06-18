@@ -13,7 +13,7 @@ We use pyqtSingal to transfer data between the QThread and QWindow,
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QLabel,QPushButton,QApplication
 from random import random
-from time import sleep
+from time import sleep,time
 from io import BytesIO
 if __package__ in [None,""]:
     from windows import DetailWindow
@@ -28,16 +28,27 @@ class BasicDaqWindow(DetailWindow):
         super(BasicDaqWindow,self).__init__()
         self.options=options
         self.volts=[]
+        self.logy=options['logy']
         self.buildPlot()
         self.show()
-
-    
+        shutdown=QPushButton("Force Shutdown")
+        self.menuLayout.addRow(shutdown)
+        self.stop=shutdown.clicked
+        toggle=QPushButton("Toggle y-axis log")
+        self.menuLayout.addRow(toggle)
+        self.setLogy=False
+        toggle.clicked.connect(self.switchLogyToggle)
+        self.start=time()
+        
+    def switchLogyToggle(self,msg):
+        self.logy=not self.logy
+        
     def buildPlot(self):
         #Setup the figure with x,y label and title.
         #self.fig.invert_xaxis()
         self.fig.legend()
         self.fig.invert_xaxis()
-        if self.options['logy']: self.fig.semilogy()
+        if self.logy: self.fig.semilogy()
         self.fig.set_xlabel("Voltage (V)")
         self.fig.set_ylabel("Current (A)")
         self.fig.set_title("Multichannel Current vs Voltage")
@@ -74,6 +85,7 @@ class BasicDaqWindow(DetailWindow):
         return imgdata.getbuffer()
     
     def finalize(self):
+        print("Duration: %.02f secconds."%(time()-self.start))
         filename=self.options['filename']
         email=self.options['email']
         data=self.getData()
