@@ -45,28 +45,22 @@ class Gui(QApplication):
         self.window=BasicDaqWindow(options) #QWindow
         if msg=='single':
             self.daq=SinglePixelDaq(options) #QThread
-            self.daq.newData.connect(self.window.addPoint)
-            self.daq.done.connect(self.window.finalize)
-            self.daq.log.connect(self.window.log)
-            self.daq.start()
         elif msg == 'multi':
             self.daq = MultiPixelDaq(options)
-            self.daq.newData.connect(self.window.addPoint)
-            self.daq.done.connect(self.window.finalize)
-            self.daq.log.connect(self.window.log)
-            self.daq.start()
         elif msg=='all':
             self.daq=AllPixelsDaq(options)
-            self.daq.newData.connect(self.window.addPoint)
-            self.daq.done.connect(self.window.finalize)
-            self.daq.log.connect(self.window.log)
-            self.daq.start()
         elif msg=='calib':
             print(msg)
         else:
             print("error: wrong init.",msg)
-            
+
+        self.daq.newData.connect(self.window.addPoint)
+        self.daq.done.connect(self.window.finalize)
+        self.daq.log.connect(self.window.log)
+        self.daq.start()
+        
         self.window.done.connect(self.restore)
+        self.window.stop.connect(self.daq.stop)
         self.window.show()
             
     def restore(self,msg):

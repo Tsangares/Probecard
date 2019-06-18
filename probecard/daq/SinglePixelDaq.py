@@ -54,8 +54,11 @@ class SinglePixelDaq(BaseProbecardThread):
             if self.softwareCompliance(keithleyCurrent,compliance) > 0.1:
                 print("Software compliance breached!")
                 break
+            if self.forceStop:
+                print("Force quitting")
+                break
         if not self.debugMode:
-            self.keithley.powerDownPSU()
+            self.keithley.powerDownPSU(self.rampRate)
         self.log.emit("Finished data taking.")
         self.done.emit('done')
         self.quit()

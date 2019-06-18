@@ -53,10 +53,13 @@ class AllPixelsDaq(BaseProbecardThread):
             if self.softwareCompliance(keithleyCurrent,compliance) > 0.8:
                 print("At least 80% of pixels have reached compliance!")
                 break
+            if self.forceStop:
+                print("Force quitting")
+                break
             
         #Always powerdown the keithley when you are done
         if not self.debugMode:
-            self.keithley.powerDownPSU()
+            self.keithley.powerDownPSU(self.rampRate)
 
         #Log to the window
         self.log.emit("Finished data taking.")
