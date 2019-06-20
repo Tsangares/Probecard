@@ -32,7 +32,6 @@ class MultiPixelDaq(BaseProbecardThread):
             print("Currently at volt",volt)
             currents=self.getAllChannels(volt) #a dict
             list_currents=[c[1] for c in currents.items()]
-            print(currents)
             keithleyCurrent=-self.readKeithley()
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
             breached=self.softwareCompliance(list_currents,agilentCompliance)

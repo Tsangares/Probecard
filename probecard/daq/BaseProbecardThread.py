@@ -23,6 +23,7 @@ class BaseProbecardThread(QThread):
     newData=pyqtSignal(float,float,str,bool)
     log=pyqtSignal(str)
     done=pyqtSignal(str)
+    currentVoltage=pyqtSignal(float)
     rampRate=2.0
     agilentModes={
         'readCurrent': 'current',
