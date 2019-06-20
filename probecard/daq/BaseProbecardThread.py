@@ -99,7 +99,9 @@ class BaseProbecardThread(QThread):
     def setVoltage(self,volt):
         if not self.debugMode:
             self.keithley.set_output(volt)
-        sleep(2.0/10.0)
+        delay=2.0/10.0
+        print("Delay for %.02f secconds"%delay)
+        sleep(delay)
         self.log.emit("Voltage set to %s"%volt)
 
     #Set current mode on the controller and ready to read current from the agilent

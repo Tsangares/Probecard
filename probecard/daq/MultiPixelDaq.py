@@ -63,6 +63,5 @@ class MultiPixelDaq(BaseProbecardThread):
             for value,chan in zip(currents,[smu1,smu2,smu3,smu4]):
                 if chan==99: continue
                 values[chan]=value
-                print("Emitting",volt,value,str(chan))
                 self.emit(volt,value,str(chan),refresh=True)
         return values
