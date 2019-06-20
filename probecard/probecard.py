@@ -83,6 +83,7 @@ if __name__ == "__main__":
     options=[
         ('Email', 'email','name@email.com'),
         ('Experiment Name (for excel)', 'filename','filename'),
+        ('Plot Title', 'plotTitle','plotTitle'),
         ('Keithley Compliance (A)', 'kcomp'),
         ('Probecard controller COM port (#)',   'com'),
         ('Agilent Hold Time (sec)', 'holdTime'),

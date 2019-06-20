@@ -52,7 +52,10 @@ class BasicDaqWindow(DetailWindow):
         if self.logy: self.fig.semilogy()
         self.fig.set_xlabel("Voltage (V)")
         self.fig.set_ylabel("Current (A)")
-        self.fig.set_title("Multichannel Current vs Voltage")
+        if self.options['plotTitle'] == '':
+            self.fig.set_title("Multichannel Current vs Voltage")
+        else:
+            self.fig.set_title(self.options['plotTitle'])
 
     #Input a voltage, current, on a given channel and plot it.
     #addPoint(float,float,string,bool)
