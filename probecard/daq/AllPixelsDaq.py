@@ -58,9 +58,7 @@ class AllPixelsDaq(BaseProbecardThread):
                 break
             
         #Always powerdown the keithley when you are done
-        if not self.debugMode:
-            self.keithley.powerDownPSU(self.rampRate)
-
+        self.powerDownKeithley()
         #Log to the window
         self.log.emit("Finished data taking.")
         

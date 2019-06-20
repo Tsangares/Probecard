@@ -52,7 +52,12 @@ class BaseProbecardThread(QThread):
 
     def stop(self):
         self.forceStop=True
-        
+
+    def powerDownKeithley(self):
+        if not self.debugMode:
+            self.log.emit("Powering down the power supply at a rate of %.02fV/s"%self.rampRate)
+            self.keithley.powerDownPSU(self.rampRate)
+
     def initKeithley(self,compliance):
         self.keithley=Keithley2657a()
         self.keithley.configure_measurement(1, 0, float(compliance))

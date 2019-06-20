@@ -43,8 +43,7 @@ class MultiPixelDaq(BaseProbecardThread):
             if self.forceStop:
                 print("Force quitting")
                 break
-        if not self.debugMode:
-            self.keithley.powerDownPSU(self.rampRate)
+        self.powerDownKeithley()
         self.log.emit("Finished data taking.")
         self.done.emit('done')
         self.quit()

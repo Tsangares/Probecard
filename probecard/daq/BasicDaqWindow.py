@@ -34,6 +34,7 @@ class BasicDaqWindow(DetailWindow):
         shutdown=QPushButton("Force Shutdown")
         self.menuLayout.addRow(shutdown)
         self.stop=shutdown.clicked
+        self.stop.clicked.connect(lambda: self.log("Taking last round of data then shutting down."))
         toggle=QPushButton("Toggle y-axis log")
         self.menuLayout.addRow(toggle)
         self.setLogy=False
