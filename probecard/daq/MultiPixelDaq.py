@@ -19,7 +19,6 @@ else:
 class MultiPixelDaq(BaseProbecardThread):
     useDelays=False
     delayBetweenGroups=.5
-
     def run(self):
         super(MultiPixelDaq,self).run()
         
@@ -64,5 +63,8 @@ class MultiPixelDaq(BaseProbecardThread):
             for value,chan in zip(currents,[smu1,smu2,smu3,smu4]):
                 if chan==99: continue
                 values[chan]=value
-                self.emit(volt,value,str(chan),refresh=True)
+                if chan == 26:
+                    self.emit(volt,value,'guardRing',refresh=True)
+                else:
+                    self.emit(volt,value,str(chan),refresh=True)
         return values
