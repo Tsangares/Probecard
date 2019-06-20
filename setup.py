@@ -1,8 +1,8 @@
 import setuptools
 
 setuptools.setup(
-    name="probecardv1.4",
-    version="0.0.1",
+    name="probecard",
+    version="0.1.1",
     author="William Wyatt",
     author_email="wwyatt@ucsc.edu",
     description="GUI for probecard measurements.",
