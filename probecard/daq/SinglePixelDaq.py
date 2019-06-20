@@ -29,27 +29,28 @@ class SinglePixelDaq(BaseProbecardThread):
 
     def run(self):
         super(SinglePixelDaq,self).run()
+        self.controllerDelay=1
         if not self.debugMode:
             print("Setting controller to voltage mode.")
-            controllerDelay=1
             self.setVoltageMode()
-            sleep(controllerDelay)
+            sleep(self.controllerDelay)
             self.controller.setGain(1) #highest resistance
             print("Setting gain resistor to 1 or %sohms."%self.controller.getResistance())
-            sleep(controllerDelay)
-            self.controller.setChannel(int(self.options['channel_number']))
+            sleep(self.controllerDelay)
+        channels=[int(chan) for chan in self.options['channel_number'].split(',') if chan != '']
         voltages=self.getVoltageRegions()
+
         compliance=float(self.options['kcomp'])
         for volt in voltages:
-            keithleyCurrent,agilentCurrent=self.getValues(volt)
-            while agilentCurrent is None:
+            keithleyCurrent,agilentCurrents=self.getValues(volt,channels)
+            while agilentCurrents is None:
                 print("failed gain check")
-                keithleyCurrent,agilentCurrent=self.getValues(volt)
+                keithleyCurrent,agilentCurrents=self.getValues(volt,channels)
                 #This loop happens if the gain is wrong from checkGain()
-                
-            print("Agilent Current: ",agilentCurrent)
+            print("Agilent Current: ",agilentCurrents)
             print("Keithley Current:", keithleyCurrent)
-            self.emit(volt,agilentCurrent,'agilent',refresh=False)
+            for chan,current in zip(channels,agilentCurrents):
+                self.emit(volt,current,str(chan),refresh=False)
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
             if self.softwareCompliance(keithleyCurrent,compliance) > 0.1:
                 print("Software compliance breached!")
@@ -87,11 +88,18 @@ class SinglePixelDaq(BaseProbecardThread):
                 currents['V%s'%channel[-1]] = voltage
         return currents['V1']
     
-    def getValues(self,volt):
+    def getValues(self,volt,channels):
         #Single Pixel
         self.setVoltage(volt)
         keithley=self.readKeithley()
-        agilent=self.getCurrents()
+        agilent=[]
+        print(self.controller)
+        for chan in channels:
+            if not self.debugMode: self.controller.setChannel(chan)
+            sleep(self.controllerDelay)
+            current=self.getCurrents()
+            if current is None: return None,None
+            agilent.append(current)
         return -keithley,agilent
             
         
