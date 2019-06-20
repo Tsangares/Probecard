@@ -42,6 +42,7 @@ class BasicDaqWindow(DetailWindow):
         
     def switchLogyToggle(self,msg):
         self.logy=not self.logy
+        self.refresh()
         
     def buildPlot(self):
         #Setup the figure with x,y label and title.

@@ -23,7 +23,7 @@ class BaseProbecardThread(QThread):
     newData=pyqtSignal(float,float,str,bool)
     log=pyqtSignal(str)
     done=pyqtSignal(str)
-    rampRate=2.0
+    rampRate=3.0
     agilentModes={
         'readCurrent': 'current',
         'readVoltage': 'volt',
@@ -99,7 +99,7 @@ class BaseProbecardThread(QThread):
     def setVoltage(self,volt):
         if not self.debugMode:
             self.keithley.set_output(volt)
-        sleep(1)
+        sleep(2.0/10.0)
         self.log.emit("Voltage set to %s"%volt)
 
     #Set current mode on the controller and ready to read current from the agilent
