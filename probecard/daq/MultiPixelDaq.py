@@ -37,6 +37,7 @@ class MultiPixelDaq(BaseProbecardThread):
             keithleyCurrent=-self.readKeithley()
             self.emit(volt,keithleyCurrent,'keithley',refresh=True)
             breached=self.softwareCompliance(list_currents,agilentCompliance)
+            print("%.01f%% of pixels have reached compliance at %.02e"%(breached*100,agilentCompliance))
             if breached > 0.8:
                 print("More than 80% of pixels have reached compliance!")
                 break
