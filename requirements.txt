@@ -7,6 +7,7 @@ docutils==0.14
 future==0.17.1
 idna==2.8
 iso8601==0.1.12
+
 kiwisolver==1.0.1
 matplotlib==3.0.2
 numpy==1.15.4
@@ -16,8 +17,9 @@ pyparsing==2.3.0
 PyQt5==5.11.3
 PyQt5-sip==4.19.13
 pyserial==3.4
-python-dateutil==2.7.5
+python-dateutil==2.8.0
 PyVISA==1.9.1
+
 PyYAML==4.2b4
 readme-renderer==24.0
 requests==2.22.0

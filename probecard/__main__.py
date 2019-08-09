@@ -1,2 +1,2 @@
-from probecard import GUI
-GUI.init()
+from GUI import init
+init()

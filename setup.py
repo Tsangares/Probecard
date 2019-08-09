@@ -28,6 +28,7 @@ setuptools.setup(
         "six>=1.11.0",
         "XlsxWriter>=1.1.2",
 	"contraption>=0.0.2",
+        "urllib3>=1.24.2",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

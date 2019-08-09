@@ -2,11 +2,14 @@ import xlsxwriter
 import matplotlib
 import time
 import platform
+if 'darwin' in platform.system().lower():
+    import matplotlib
+    matplotlib.use('TkAgg') #Mac support
+matplotlib.use('TkAgg') #Mac support
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
 from datetime import datetime
 import os
-matplotlib.use("TkAgg")
 
 OUTPUT_FOLDER="../output/excel/"
 #Simply takes the data & writes it to an excel file.
@@ -19,7 +22,10 @@ def writeExcel(data,filename,time=True,excel_folder=None):
     timestamp=datetime.today().strftime("_%Y_%b%d_%I.%M%p")
     if time:
         filename = filename+timestamp
-    file_url="%s%s.xlsx"%(excel_folder,filename)
+    postfix='.xlsx'
+    if '.xlsx' in filename:
+        postfix=''
+    file_url="%s%s%s"%(excel_folder,filename,postfix)
     workbook=xlsxwriter.Workbook(file_url)
     worksheet=workbook.add_worksheet()
     #Get parameters

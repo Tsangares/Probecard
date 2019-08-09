@@ -1,1 +1,1 @@
-{"state": "", "email": "wwyatt@ucsc.edu", "filename": "test", "kcomp": "1", "holdTime": "1", "measDelay": "1", "measTime": "1", "com": "1", "repeat": "1", "resistance": "1", "acomp": "1", "region_0_start": "0", "region_0_end": "10", "region_0_steps": "2"}
+{"state": "Multi Pixels", "email": "cagee@ucsc.edu", "filename": "HPK_5x5_W8_P13_rm2-2-18-22", "kcomp": ".000025", "com": "5", "holdTime": ".5", "region_0_start": "0", "region_0_steps": "52", "region_0_end": "-260", "logy": false, "debug": false, "acomp": ".000004", "channel_number": "5,20"}
