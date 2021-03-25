@@ -18,7 +18,7 @@ PyQt5-sip==4.19.13
 pyserial==3.4
 python-dateutil==2.7.5
 PyVISA==1.9.1
-PyYAML==4.2b4
+PyYAML==5.4
 readme-renderer==24.0
 requests==2.22.0
 requests-toolbelt==0.9.1
